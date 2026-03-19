@@ -185,7 +185,7 @@ const AdminDashboard = () => {
     const { tab } = useParams();
     const navigate = useNavigate();
     
-    const validTabs = [...Object.keys(cmsSchemas), 'overview', 'messages', 'media'];
+    const validTabs = [...Object.keys(cmsSchemas), 'overview', 'messages', 'media', 'security'];
     const activeTab = validTabs.includes(tab) ? tab : 'overview';
     
     const [collectionData, setCollectionData] = useState([]);
