@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import GlassCard from '../components/ui/GlassCard';
-import { Database, FolderGit2, MessageSquare, LogOut, Plus, Trash2, Edit, FileText, Award, Star, Settings, ShieldCheck, HelpCircle, Image as ImageIcon } from 'lucide-react';
+import { Database, FolderGit2, MessageSquare, LogOut, Plus, Trash2, Edit, FileText, Award, Star, Settings, ShieldCheck, HelpCircle, Image as ImageIcon, Search } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import PremiumButton from '../components/ui/PremiumButton';
 import ReactMarkdown from 'react-markdown';
@@ -10,6 +10,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import MediaManager from '../components/admin/MediaManager';
 
 const generateSlug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -22,7 +23,10 @@ const cmsSchemas = {
             { name: 'siteName', label: 'Global Website Title', type: 'text', required: true },
             { name: 'siteDescription', label: 'Global Description & Meta', type: 'text', required: true },
             { name: 'homepageTemplate', label: 'Homepage Global Template', type: 'select', options: ['Centered Hero', 'Split Screen', 'Animated Intro', 'Futuristic AI'], required: true },
-            { name: 'globalTheme', label: 'Forced Theme Override', type: 'select', options: ['light', 'dark', 'system'], required: true },
+            { name: 'globalTheme', label: 'Forced Theme Override', type: 'select', options: ['light', 'dark', 'luxury'], required: true },
+            { name: 'metaTitle', label: 'SEO Meta Title', type: 'text', required: false },
+            { name: 'metaDescription', label: 'SEO Meta Description', type: 'text', required: false },
+            { name: 'googleAnalyticsId', label: 'Google Analytics ID', type: 'text', required: false },
             { name: 'contactEmail', label: 'Public Display Email', type: 'text', required: false },
             { name: 'resumeUrl', label: 'Cloud URL to Resume PDF', type: 'url', required: false },
             { name: 'githubUrl', label: 'GitHub Profile Link', type: 'url', required: false },
@@ -41,6 +45,7 @@ const cmsSchemas = {
             { name: 'techStack', label: 'Tech Stack (comma separated)', type: 'text', required: false },
             { name: 'category', label: 'Category', type: 'select', options: ['AI/ML', 'IoT', 'Web Development', 'Other'], required: true },
             { name: 'status', label: 'Status', type: 'select', options: ['Completed', 'Ongoing', 'Planned'], required: true },
+            { name: 'themeTemplate', label: 'Layout Template', type: 'select', options: ['Grid', 'Card', 'Featured', 'Carousel', 'Masonry'], required: true },
             { name: 'coverImage', label: 'Cover Image', type: 'image', required: false },
             { name: 'galleryImages', label: 'Project Gallery (Multi-Upload)', type: 'image-gallery', required: false },
             { name: 'githubUrl', label: 'GitHub URL', type: 'url', required: false },
@@ -57,7 +62,8 @@ const cmsSchemas = {
             { name: 'content', label: 'Markdown Content Body', type: 'markdown', required: true },
             { name: 'category', label: 'Category', type: 'text', required: true },
             { name: 'tags', label: 'SEO Tags & Keywords', type: 'tags', required: false },
-            { name: 'coverImage', label: 'Cover Image', type: 'image', required: false }
+            { name: 'coverImage', label: 'Cover Image', type: 'image', required: false },
+            { name: 'themeTemplate', label: 'Layout Template', type: 'select', options: ['Minimal', 'Magazine', 'Split', 'Image-Heavy'], required: true }
         ]
     },
     certifications: {
@@ -115,15 +121,18 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     
     // Default to overview if no tab matches
-    const activeTab = Object.keys(cmsSchemas).includes(tab) || tab === 'messages' ? tab : 'overview';
+    const validTabs = [...Object.keys(cmsSchemas), 'overview', 'messages', 'media'];
+    const activeTab = validTabs.includes(tab) ? tab : 'overview';
     
     const [collectionData, setCollectionData] = useState([]);
+    const [mediaFiles, setMediaFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [inboxSearch, setInboxSearch] = useState('');
     const [counts, setCounts] = useState({ projects: 0, blogs: 0, messages: 0 });
     const [formData, setFormData] = useState({});
+    const [inboxFilter, setInboxFilter] = useState('all');
 
     useEffect(() => {
         fetchCollectionData();
@@ -549,31 +558,48 @@ const AdminDashboard = () => {
             </div>
         );
     };
-
     const renderInbox = () => {
-        if (loading) return <div className="flex justify-center mt-12"><div className="animate-spin h-10 w-10 border-b-2 border-coffee-900 dark:border-coffee-100 rounded-full"></div></div>;
         
-        const filteredMessages = collectionData.filter(m => 
-            m.name?.toLowerCase().includes(inboxSearch.toLowerCase()) || 
-            m.email?.toLowerCase().includes(inboxSearch.toLowerCase()) || 
-            m.message?.toLowerCase().includes(inboxSearch.toLowerCase())
-        );
+        const filteredMessages = collectionData.filter(m => {
+            const matchesSearch = m.name?.toLowerCase().includes(inboxSearch.toLowerCase()) || 
+                                m.email?.toLowerCase().includes(inboxSearch.toLowerCase()) || 
+                                m.message?.toLowerCase().includes(inboxSearch.toLowerCase());
+            const matchesFilter = inboxFilter === 'all' || 
+                                (inboxFilter === 'unread' && !m.isRead) || 
+                                (inboxFilter === 'read' && m.isRead);
+            return matchesSearch && matchesFilter;
+        });
 
         return (
             <div className="space-y-4 mt-6">
-                {/* Advanced Search Bar */}
-                <div className="relative mb-6">
-                    <input 
-                        type="text" 
-                        placeholder="Search messages by name, email, or keyword..." 
-                        value={inboxSearch}
-                        onChange={(e) => setInboxSearch(e.target.value)}
-                        className="w-full bg-white/70 dark:bg-[#0c0c0c] border border-coffee-200 dark:border-white/10 rounded-xl p-4 pl-5 outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm transition-shadow text-sm"
-                    />
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="relative flex-grow">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
+                        <input 
+                            type="text" 
+                            placeholder="Find messages..." 
+                            value={inboxSearch}
+                            onChange={(e) => setInboxSearch(e.target.value)}
+                            className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl p-3 pl-12 outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                        />
+                    </div>
+                    <div className="flex bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--border)]">
+                        {['all', 'unread', 'read'].map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setInboxFilter(f)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${inboxFilter === f ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)] hover:opacity-70'}`}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {filteredMessages.length === 0 ? (
-                    <div className="p-12 text-center text-sm font-bold glass rounded-2xl mt-4">No messages match your search.</div>
+                    <div className="p-20 text-center glass border border-dashed border-[var(--border)] rounded-[32px]">
+                        <p className="text-[var(--text-secondary)] font-medium italic">No messages found in this category.</p>
+                    </div>
                 ) : (
                     filteredMessages.map(m => (
                         <GlassCard key={m._id} className={`relative group overflow-hidden border-t-2 ${m.isRead ? 'border-t-coffee-300 dark:border-t-white/10 opacity-70' : 'border-t-blue-500'} hover:shadow-xl hover:opacity-100 transition-all`}>
@@ -648,6 +674,12 @@ const AdminDashboard = () => {
                         className={`flex items-center gap-3 whitespace-nowrap px-4 py-3.5 rounded-xl font-bold transition-all ${activeTab === 'messages' ? 'bg-blue-600 text-white shadow-xl scale-[1.02]' : 'hover:bg-coffee-100/50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'}`}
                     >
                         <MessageSquare size={18} /> Inbox
+                    </button>
+                    <button 
+                        onClick={() => navigate('/admin/media')}
+                        className={`flex items-center gap-3 whitespace-nowrap px-4 py-3.5 rounded-xl font-bold transition-all ${activeTab === 'media' ? 'bg-indigo-600 text-white shadow-xl scale-[1.02]' : 'hover:bg-coffee-100/50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'}`}
+                    >
+                        <ImageIcon size={18} /> Media Archive
                     </button>
                 </nav>
                 <div className="mt-4 md:mt-10 pt-5 border-t border-coffee-200 dark:border-white/10">
@@ -769,8 +801,9 @@ const AdminDashboard = () => {
                             )}
 
                             {activeTab === 'messages' && renderInbox()}
-                            {activeTab !== 'overview' && activeTab !== 'messages' && isFormOpen && renderDynamicForm()}
-                            {activeTab !== 'overview' && activeTab !== 'messages' && !isFormOpen && renderDataList()}
+                            {activeTab === 'media' && <MediaManager token={token} />}
+                            {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'media' && isFormOpen && renderDynamicForm()}
+                            {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'media' && !isFormOpen && renderDataList()}
                         </div>
                     </motion.div>
                 </AnimatePresence>

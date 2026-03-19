@@ -6,6 +6,7 @@ import CenteredHero from '../components/templates/home/CenteredHero';
 import SplitScreen from '../components/templates/home/SplitScreen';
 import AnimatedIntro from '../components/templates/home/AnimatedIntro';
 import FuturisticAI from '../components/templates/home/FuturisticAI';
+import SEOTags from '../components/ui/SEOTags';
 
 const Home = () => {
     const { settings, loading } = useContext(SettingsContext);
@@ -24,19 +25,22 @@ const Home = () => {
 
     const currentTemplate = settings?.homepageTemplate || 'Centered Hero';
 
-    // The Layout Router Switch Statement
-    switch (currentTemplate) {
-        case 'Centered Hero':
-            return <CenteredHero settings={settings} />;
-        case 'Split Screen':
-            return <SplitScreen settings={settings} />;
-        case 'Animated Intro':
-            return <AnimatedIntro settings={settings} />;
-        case 'Futuristic AI':
-            return <FuturisticAI settings={settings} />;
-        default:
-            return <CenteredHero settings={settings} />;
-    }
+    const renderSelectedTemplate = () => {
+        switch (currentTemplate) {
+            case 'Centered Hero': return <CenteredHero settings={settings} />;
+            case 'Split Screen': return <SplitScreen settings={settings} />;
+            case 'Animated Intro': return <AnimatedIntro settings={settings} />;
+            case 'Futuristic AI': return <FuturisticAI settings={settings} />;
+            default: return <CenteredHero settings={settings} />;
+        }
+    };
+
+    return (
+        <>
+            <SEOTags />
+            {renderSelectedTemplate()}
+        </>
+    );
 };
 
 export default Home;

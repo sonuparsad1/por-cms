@@ -9,6 +9,9 @@ const SettingsSchema = new mongoose.Schema({
         default: 'Centered Hero' 
     },
     globalTheme: { type: String, enum: ['light', 'dark', 'luxury'], default: 'light' },
+    metaTitle: { type: String, default: 'Sonu Prasad | Portfolio' },
+    metaDescription: { type: String, default: 'Portfolio of Sonu Prasad - Developer & Engineer' },
+    googleAnalyticsId: { type: String, default: '' },
     githubUrl: { type: String, default: '' },
     linkedinUrl: { type: String, default: '' },
     twitterUrl: { type: String, default: '' },

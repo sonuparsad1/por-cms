@@ -7,9 +7,15 @@ const Navbar = () => {
     const { theme, toggleTheme } = useContext(ThemeContext);
 
     const ThemeIcon = () => {
-        if (theme === 'light') return <Sun size={20} className="text-[var(--text-primary)]" />;
-        if (theme === 'dark') return <Moon size={20} className="text-[var(--text-primary)]" />;
-        return <Coffee size={20} className="text-[var(--text-primary)]" />;
+        if (theme === 'light') return <Sun size={20} className="text-amber-500" />;
+        if (theme === 'dark') return <Moon size={20} className="text-blue-400" />;
+        return <Coffee size={20} className="text-orange-900" />;
+    };
+
+    const getThemeName = () => {
+        if (theme === 'light') return 'Soft White';
+        if (theme === 'dark') return 'Developer Dark';
+        return 'Branded Chocolate';
     };
 
     return (
@@ -30,10 +36,11 @@ const Navbar = () => {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => toggleTheme()} 
-                        className="p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] hover:scale-110 transition-all shadow-sm"
-                        title="Switch Appearance"
+                        className="flex items-center gap-2 p-2 px-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-lg hover:shadow-[var(--accent-glow)] transition-all group"
+                        title={getThemeName()}
                     >
                         <ThemeIcon />
+                        <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100">{getThemeName()}</span>
                     </button>
                     <button className="md:hidden p-2 text-[var(--text-primary)]">
                         <Menu size={24} />

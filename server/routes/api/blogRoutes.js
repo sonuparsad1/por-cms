@@ -3,6 +3,8 @@ const router = express.Router();
 const blogController = require('../../controllers/blogController');
 const auth = require('../../middleware/authMiddleware');
 
+router.get('/related/:id', blogController.getRelatedBlogs);
+
 router.route('/')
     .get(blogController.getAllBlogs)
     .post(auth, blogController.createBlog);

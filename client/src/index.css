@@ -4,53 +4,79 @@
 
 @layer base {
   :root {
-    /* Default (Light) - White Minimal */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f9fafb;
-    --bg-glass: rgba(255, 255, 255, 0.7);
-    --text-primary: #111827;
-    --text-secondary: #4b5563;
-    --accent: #3b82f6;
-    --border: rgba(0, 0, 0, 0.1);
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    /* Soft White (Minimal Mode) */
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.6);
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --accent: #d97706; /* Maintain branded amber/gold across themes */
+    --accent-glow: rgba(217, 119, 6, 0.3);
+    --border: rgba(15, 23, 42, 0.08);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   }
 
   .dark {
-    /* Dark - Black Premium */
-    --bg-primary: #050505;
-    --bg-secondary: #0c0c0c;
-    --bg-glass: rgba(12, 12, 12, 0.7);
-    --text-primary: #f9fafb;
-    --text-secondary: #9ca3af;
-    --accent: #60a5fa;
-    --border: rgba(255, 255, 255, 0.1);
-    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    /* Dark (Developer Mode) */
+    --bg-primary: #020617;
+    --bg-secondary: #0f172a;
+    --bg-glass: rgba(15, 23, 42, 0.7);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent: #fbbf24;
+    --accent-glow: rgba(251, 191, 36, 0.4);
+    --border: rgba(248, 252, 252, 0.1);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
   }
 
   .luxury {
-    /* Luxury - Brown Style */
-    --bg-primary: #fdfaf6;
-    --bg-secondary: #f4ece1;
-    --bg-glass: rgba(253, 250, 246, 0.7);
-    --text-primary: #433422;
-    --text-secondary: #8c7a6b;
-    --accent: #d97706; /* Gold/Bronze */
-    --border: rgba(67, 52, 34, 0.15);
-    --shadow: 0 4px 20px -2px rgba(67, 52, 34, 0.2);
+    /* Chocolate (Primary Brand Identity) */
+    --bg-primary: #1c140e;
+    --bg-secondary: #2d1e14;
+    --bg-glass: rgba(45, 30, 20, 0.75);
+    --text-primary: #fef3c7; /* Cream */
+    --text-secondary: #a8a29e;
+    --accent: #d97706;
+    --accent-glow: rgba(217, 119, 6, 0.5);
+    --border: rgba(254, 243, 199, 0.12);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 20px -3px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 30px 50px -10px rgba(0, 0, 0, 0.8);
   }
 }
 
 @layer utilities {
   .glass {
     background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-hover:hover {
+    background: rgba(var(--bg-glass), 0.85);
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow), var(--shadow-lg);
+    transform: translateY(-4px);
   }
   
   .text-glow {
-    text-shadow: 0 0 10px var(--accent);
+    text-shadow: 0 0 15px var(--accent-glow);
+  }
+
+  .floating {
+    animation: floating 3s ease-in-out infinite;
+  }
+
+  @keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
 }
 
@@ -59,6 +85,23 @@ body {
   min-height: 100vh;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s ease;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Premium Feel */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-secondary);
+  border: 4px solid var(--bg-primary);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }

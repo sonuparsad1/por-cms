@@ -3,6 +3,8 @@ const router = express.Router();
 const projectController = require('../../controllers/projectController');
 const auth = require('../../middleware/authMiddleware');
 
+router.get('/related/:id', projectController.getRelatedProjects);
+
 router.route('/')
     .get(projectController.getAllProjects)
     .post(auth, projectController.createProject);

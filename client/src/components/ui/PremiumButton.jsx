@@ -2,24 +2,25 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const PremiumButton = ({ children, onClick, variant = 'primary', className = '', ...props }) => {
-    const baseStyle = "px-6 py-3 rounded-md font-semibold transition-all duration-300 ease-in-out flex items-center justify-center gap-2";
+    const baseStyle = "relative px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-3 overflow-hidden group";
     
     const variants = {
-        primary: "bg-coffee-900 text-coffee-100 dark:bg-coffee-100 dark:text-coffee-900 shadow-md hover:shadow-lg hover:scale-[1.02]",
-        secondary: "bg-transparent border-2 border-coffee-900 text-coffee-900 dark:border-coffee-100 dark:text-coffee-100 hover:bg-coffee-900 hover:text-white dark:hover:bg-coffee-100 dark:hover:text-coffee-900",
-        outline: "bg-transparent border border-coffee-500 text-coffee-700 dark:text-coffee-300 hover:bg-coffee-500 hover:text-white dark:hover:text-coffee-900",
-        glass: "glass text-coffee-900 dark:text-coffee-100 hover:bg-white/20 dark:hover:bg-black/40"
+        primary: "bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20 hover:shadow-[var(--accent)]/40 hover:-translate-y-1",
+        secondary: "bg-[var(--text-primary)] text-[var(--bg-primary)] hover:scale-105 active:scale-95 shadow-xl shadow-black/10",
+        outline: "bg-transparent border-2 border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)]",
+        glass: "glass-hover text-[var(--text-primary)]"
     };
 
     return (
         <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ y: -4 }}
+            whileTap={{ scale: 0.96 }}
             onClick={onClick}
             className={`${baseStyle} ${variants[variant]} ${className}`}
             {...props}
         >
-            {children}
+            <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 slant" />
+            <span className="relative z-10">{children}</span>
         </motion.button>
     );
 };
