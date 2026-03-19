@@ -1,95 +1,225 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
+import { Terminal, Cpu, Database, Layout, Code2, Binary, BrainCircuit, Sparkles, Orbit } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
+import TiltCard from '../components/ui/TiltCard';
+import FluidBackground from '../components/ui/FluidBackground';
+
+const skillCategories = [
+    {
+        title: "Programming Languages",
+        icon: <Code2 className="text-orange-400" />,
+        skills: [
+            { name: "Python", level: 95 },
+            { name: "C++", level: 85 },
+            { name: "Java", level: 80 },
+            { name: "JavaScript", level: 90 }
+        ]
+    },
+    {
+        title: "Technical Stack",
+        icon: <Terminal className="text-blue-400" />,
+        skills: [
+            { name: "React / Next.js", level: 95 },
+            { name: "Node.js / Express", level: 90 },
+            { name: "MongoDB / SQL", level: 85 },
+            { name: "Cloud Integration", level: 75 }
+        ]
+    },
+    {
+        title: "AI & Machine Learning",
+        icon: <BrainCircuit className="text-purple-400" />,
+        isSpecial: true,
+        skills: [
+            { name: "Neural Networks", level: 80 },
+            { name: "Model Training", level: 75 },
+            { name: "PyTorch / TF", level: 70 },
+            { name: "Data Analytics", level: 85 }
+        ]
+    },
+    {
+        title: "Core CS Subjects",
+        icon: <Binary className="text-green-400" />,
+        skills: [
+            { name: "Data Structures", level: 95 },
+            { name: "Algorithms", level: 90 },
+            { name: "OS / DBMS", level: 85 },
+            { name: "Software Eng", level: 90 }
+        ]
+    }
+];
 
 const Skills = () => {
-    const skillCategories = [
-        {
-            title: "Programming",
-            skills: [
-                { name: "Python", level: 90 },
-                { name: "C++", level: 85 },
-                { name: "Java", level: 75 }
-            ]
-        },
-        {
-            title: "AI / Machine Learning",
-            skills: [
-                { name: "NumPy & Pandas", level: 85 },
-                { name: "Scikit-learn", level: 80 },
-                { name: "TensorFlow", level: 70 },
-                { name: "Deep Learning (Basics)", level: 65 }
-            ]
-        },
-        {
-            title: "Web Development",
-            skills: [
-                { name: "React & Tailwind CSS", level: 90 },
-                { name: "Node.js & Express", level: 80 },
-                { name: "MongoDB", level: 75 },
-                { name: "HTML/CSS/JS", level: 95 }
-            ]
-        },
-        {
-            title: "Core Strengths",
-            skills: [
-                { name: "Problem Solving & DSA", level: 85 },
-                { name: "System Design Basics", level: 70 },
-                { name: "Git/GitHub", level: 90 },
-                { name: "Debugging & Logic", level: 95 }
-            ]
-        }
-    ];
-
     return (
-        <div className="py-12">
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-16 text-center"
-            >
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-coffee-900 dark:text-coffee-100">Technical Toolkit</h1>
-                <p className="text-xl text-coffee-600 dark:text-coffee-400">My technical proficiencies and core strengths.</p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-                {skillCategories.map((cat, idx) => (
-                    <GlassCard key={idx} className="flex flex-col">
-                        <h2 className="text-2xl font-bold mb-6 text-coffee-800 dark:text-coffee-200">{cat.title}</h2>
-                        <div className="space-y-6">
-                            {cat.skills.map((skill, sIdx) => (
-                                <div key={sIdx}>
-                                    <div className="flex justify-between mb-2">
-                                        <span className="font-medium text-coffee-900 dark:text-coffee-100">{skill.name}</span>
-                                        <span className="text-sm text-coffee-500 font-bold">{skill.level}%</span>
-                                    </div>
-                                    <div className="w-full bg-coffee-200 dark:bg-black/20 rounded-full h-2.5">
-                                        <motion.div 
-                                            initial={{ width: 0 }}
-                                            whileInView={{ width: `${skill.level}%` }}
-                                            viewport={{ once: true }}
-                                            transition={{ duration: 1, delay: sIdx * 0.1 }}
-                                            className="bg-coffee-500 h-2.5 rounded-full"
-                                        ></motion.div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </GlassCard>
-                ))}
-            </div>
+        <div className="min-h-screen py-32 px-6 relative overflow-hidden bg-transparent selection:bg-[var(--accent)]/30">
+            <FluidBackground />
             
-            <div className="mt-16 text-center">
-                <h3 className="text-2xl font-semibold mb-6 text-coffee-900 dark:text-coffee-100">Currently Learning</h3>
-                <div className="flex flex-wrap justify-center gap-4">
-                    {['Advanced System Design', 'Next.js', 'Transformers & LLMs', 'AWS Basics'].map((tag, idx) => (
-                        <span key={idx} className="px-5 py-2 rounded-full glass text-coffee-800 dark:text-coffee-200 font-medium">
-                            {tag}
+            {/* Background Tactical Grid */}
+            <div className="fixed inset-0 pointer-events-none opacity-[0.05]">
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--accent)_1px,transparent_1px),linear-gradient(to_bottom,var(--accent)_1px,transparent_1px)] bg-[size:64px_64px]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_90%)]" />
+            </div>
+
+            <div className="max-w-7xl mx-auto relative z-10 space-y-40">
+                
+                {/* CYBERPUNK HERO */}
+                <header className="text-center relative">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1, ease: "backOut" }}
+                        className="inline-flex items-center gap-4 px-8 py-3 bg-black border border-[var(--accent)]/50 rounded-full mb-12 shadow-[0_0_30px_var(--accent-glow)] group cursor-default"
+                    >
+                        <Terminal size={20} className="text-[var(--accent)] group-hover:rotate-12 transition-transform" />
+                        <span className="text-xs font-black uppercase tracking-[0.5em] text-white">System_Core_Abilities_v2.0</span>
+                    </motion.div>
+
+                    <h1 className="text-7xl md:text-[12rem] font-black text-[var(--text-primary)] leading-none tracking-tighter mb-10">
+                        Technical<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] via-amber-400 to-orange-600 drop-shadow-[0_0_40px_var(--accent-glow)]">
+                            Arsenal
                         </span>
+                    </h1>
+
+                    <p className="text-xl md:text-3xl text-[var(--text-secondary)] max-w-3xl mx-auto font-bold uppercase tracking-widest leading-relaxed">
+                        Precision-engineered stack for <span className="text-[var(--text-primary)] underline decoration-[var(--accent)] decoration-4 underline-offset-8">Intelligent Systems</span>.
+                    </p>
+                </header>
+
+                {/* SKILLS GRID - TACTICAL MODULES */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+                    {skillCategories.map((cat, idx) => (
+                        <SkillModule key={idx} category={cat} index={idx} />
                     ))}
                 </div>
+
+                {/* THE PIPELINE */}
+                <section className="relative py-20">
+                    <div className="absolute inset-0 bg-[var(--accent)]/5 blur-[120px] rounded-full pointer-events-none" />
+                    
+                    <div className="text-center mb-20 space-y-6">
+                        <h2 className="text-4xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter uppercase italic">
+                            Learning <span className="text-[var(--accent)]">Protocol</span>
+                        </h2>
+                        <div className="h-1 w-40 bg-[var(--accent)] mx-auto rounded-full shadow-[0_0_20px_var(--accent-glow)]" />
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-6 max-w-5xl mx-auto overflow-hidden">
+                        {['Deep Learning', 'Computer Vision', 'Next.js 15', 'Rust Engine', 'Edge TPU', 'Kubernetes'].map((skill, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                whileHover={{ scale: 1.05, borderColor: 'var(--accent)' }}
+                                transition={{ delay: i * 0.1 }}
+                                className="px-10 py-6 bg-black/80 border-2 border-white/5 rounded-[32px] flex items-center gap-4 group cursor-pointer shadow-2xl transition-all"
+                            >
+                                <div className="w-3 h-3 rounded-full bg-[var(--accent)] animate-ping" />
+                                <span className="text-lg font-black text-white tracking-wider uppercase">{skill}</span>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* COMMAND PROTOCOL FOOTER */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    className="max-w-5xl mx-auto pt-20"
+                >
+                    <div className="bg-[#0a0a0a] border border-white/10 rounded-[60px] p-20 text-center relative overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.8)]">
+                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent" />
+                         
+                         <h3 className="text-3xl md:text-5xl font-black text-white mb-10 tracking-tighter uppercase leading-none">
+                            Career <span className="text-[var(--accent)]">Protocol_01</span>
+                         </h3>
+                         <p className="text-xl md:text-3xl font-bold text-white/50 leading-relaxed italic max-w-4xl mx-auto">
+                            "To architect high-density intelligent systems where computational rigor meets visceral human experience. Committed to S-Tier excellence in AI/ML stack synchronization."
+                         </p>
+                    </div>
+                </motion.div>
+
             </div>
         </div>
+    );
+};
+
+const SkillModule = ({ category, index }) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: index * 0.1 }}
+            className="group"
+        >
+            <div className="bg-[#0a0a0a] border-4 border-white/5 rounded-[48px] p-12 lg:p-16 h-full flex flex-col transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)] relative overflow-hidden shadow-2xl">
+                
+                {/* Module ID Tag */}
+                <div className="absolute top-8 right-12 font-mono text-[10px] font-black tracking-[0.4em] opacity-20 uppercase">
+                    MOD_00{index + 1}_LOGIC
+                </div>
+
+                {/* Header Section */}
+                <div className="flex items-center gap-8 mb-16">
+                    <div className="w-20 h-20 rounded-[28px] bg-white/5 border-2 border-white/10 flex items-center justify-center text-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-black transition-all duration-700 shadow-xl group-hover:shadow-[0_0_40px_var(--accent-glow)]">
+                        {React.cloneElement(category.icon, { size: 40 })}
+                    </div>
+                    <div>
+                        <h2 className="text-4xl font-black text-white tracking-tighter uppercase mb-2">
+                            {category.title}
+                        </h2>
+                        <div className="flex gap-2">
+                             {[1,2,3].map(i => <div key={i} className="h-1.5 w-6 bg-[var(--accent)]/20 rounded-full" />)}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Skill Quantizers (Progress Bars) */}
+                <div className="space-y-12 flex-1">
+                    {category.skills.map((skill, i) => (
+                        <div key={i} className="space-y-6">
+                            <div className="flex justify-between items-end px-2">
+                                <span className="text-lg font-black text-white/80 tracking-widest uppercase">
+                                    {skill.name}
+                                </span>
+                                <span className="text-sm font-mono font-black text-[var(--accent)]">
+                                    {skill.level > 90 ? 'S-TIER' : `${skill.level}%`}
+                                </span>
+                            </div>
+                            
+                            {/* Segmented Power Bar */}
+                            <div className="flex gap-1 h-3 w-full">
+                                {[...Array(20)].map((_, step) => (
+                                    <motion.div
+                                        key={step}
+                                        initial={{ opacity: 0.1 }}
+                                        whileInView={{ 
+                                            opacity: step * 5 < skill.level ? 1 : 0.1,
+                                            backgroundColor: step * 5 < skill.level ? 'var(--accent)' : 'rgba(255,255,255,0.05)'
+                                        }}
+                                        transition={{ delay: 0.5 + (step * 0.05) }}
+                                        className={`flex-1 rounded-sm shadow-[0_0_10px_rgba(0,0,0,0.5)]`}
+                                        style={{ 
+                                            boxShadow: step * 5 < skill.level ? '0 0 10px var(--accent-glow)' : 'none'
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Operational Status */}
+                <div className="mt-16 flex items-center justify-between border-t border-white/10 pt-10">
+                     <span className="text-[10px] font-black tracking-widest text-[var(--accent)] italic">OPERATIONAL_STABLE</span>
+                     <div className="flex rotate-45 gap-1">
+                         <div className="w-1.5 h-1.5 bg-white/40" />
+                         <div className="w-1.5 h-1.5 bg-[var(--accent)] animate-pulse" />
+                     </div>
+                </div>
+            </div>
+        </motion.div>
     );
 };
 

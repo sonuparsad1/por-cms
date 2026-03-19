@@ -3,7 +3,11 @@ const crudFactory = require('./crudFactory');
 
 exports.getRelatedProjects = async (req, res, next) => {
     try {
-        const project = await Project.findById(req.params.id);
+        const { id } = req.params;
+        const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
+        const project = isMongoId 
+            ? await Project.findById(id) 
+            : await Project.findOne({ slug: id });
         if (!project) return res.status(404).json({ message: 'Project not found' });
 
         const related = await Project.find({

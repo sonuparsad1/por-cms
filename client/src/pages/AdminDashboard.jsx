@@ -2,15 +2,20 @@ import React, { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import GlassCard from '../components/ui/GlassCard';
-import { Database, FolderGit2, MessageSquare, LogOut, Plus, Trash2, Edit, FileText, Award, Star, Settings, ShieldCheck, HelpCircle, Image as ImageIcon, Search } from 'lucide-react';
-import { AuthContext } from '../context/AuthContext';
+import { Database, FolderGit2, MessageSquare, LogOut, Plus, Trash2, Edit, FileText, Award, Star, Settings, ShieldCheck, HelpCircle, Image as ImageIcon, Search, TrendingUp, Users, ChevronRight, CheckCircle, XCircle, Clock, History, GraduationCap, Code2, Zap, Cpu, Activity, Shield, Globe, Radio } from 'lucide-react';
+import { AuthContext } from '../contexts/AuthContext';
+import { ThemeContext } from '../contexts/ThemeContext';
 import PremiumButton from '../components/ui/PremiumButton';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import MediaManager from '../components/admin/MediaManager';
+import AdminSidebar from '../components/admin/AdminSidebar';
+import AdminTopbar from '../components/admin/AdminTopbar';
+import ProjectBlocksBuilder from '../components/admin/ProjectBlocksBuilder';
+import FluidBackground from '../components/ui/FluidBackground';
 
 const generateSlug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -37,19 +42,23 @@ const cmsSchemas = {
     projects: {
         icon: FolderGit2,
         titleKey: 'title',
-        descKey: 'shortDescription',
+        descKey: 'tagline',
         fields: [
-            { name: 'title', label: 'Project Title', type: 'text', required: true },
-            { name: 'shortDescription', label: 'Short Description', type: 'text', required: true },
-            { name: 'fullContent', label: 'Full Markdown Content', type: 'markdown', required: true },
-            { name: 'techStack', label: 'Tech Stack (comma separated)', type: 'text', required: false },
-            { name: 'category', label: 'Category', type: 'select', options: ['AI/ML', 'IoT', 'Web Development', 'Other'], required: true },
-            { name: 'status', label: 'Status', type: 'select', options: ['Completed', 'Ongoing', 'Planned'], required: true },
-            { name: 'themeTemplate', label: 'Layout Template', type: 'select', options: ['Grid', 'Card', 'Featured', 'Carousel', 'Masonry'], required: true },
-            { name: 'coverImage', label: 'Cover Image', type: 'image', required: false },
-            { name: 'galleryImages', label: 'Project Gallery (Multi-Upload)', type: 'image-gallery', required: false },
-            { name: 'githubUrl', label: 'GitHub URL', type: 'url', required: false },
-            { name: 'liveDemoUrl', label: 'Live Demo URL', type: 'url', required: false }
+            { name: 'title', label: 'Tactical Title', type: 'text', required: true },
+            { name: 'tagline', label: 'Impact Line / Tagline', type: 'text', required: true },
+            { name: 'shortDescription', label: 'Synopsis / Synopsis Meta', type: 'textarea', required: true },
+            { name: 'category', label: 'Technology Segment', type: 'select', options: ['AI/ML', 'IoT', 'Web Development', 'Other'], required: true },
+            { name: 'status', label: 'Deployment Status', type: 'select', options: ['Completed', 'Ongoing', 'Planned'], required: true },
+            { name: 'coverImage', label: 'Primary Hero Visual', type: 'image', required: true },
+            { name: 'contentMode', label: 'Case Study Architecture', type: 'select', options: ['structured', 'custom'], required: true },
+            { name: 'structuredContent', label: 'Case Study Modules', type: 'project-builder', required: false, condition: (data) => data.contentMode === 'structured' },
+            { name: 'customCode', label: 'Architectural Overwrite (Custom Code)', type: 'project-code-editor', required: false, condition: (data) => data.contentMode === 'custom' },
+            { name: 'techStack', label: 'Tech Stack (Comma Separated)', type: 'text', required: false },
+            { name: 'githubUrl', label: 'Source Code Link (GitHub)', type: 'url', required: false },
+            { name: 'liveDemoUrl', label: 'Live Deployment Link', type: 'url', required: false },
+            { name: 'galleryImages', label: 'Archive Gallery (Visuals)', type: 'image-gallery', required: false },
+            { name: 'videoLinks', label: 'Internal Ops Videos (Comma Separated URLs)', type: 'text', required: false },
+            { name: 'themeTemplate', label: 'Display Engine/Layout', type: 'select', options: ['Grid', 'Card', 'Featured', 'Carousel', 'Masonry'], required: true }
         ]
     },
     blogs: {
@@ -74,8 +83,10 @@ const cmsSchemas = {
             { name: 'title', label: 'Certification Name', type: 'text', required: true },
             { name: 'issuer', label: 'Issuing Organization', type: 'text', required: true },
             { name: 'dateIssued', label: 'Date Issued (YYYY-MM-DD)', type: 'text', required: true },
-            { name: 'image', label: 'Certificate Image', type: 'image', required: false },
-            { name: 'credentialUrl', label: 'Credential Link', type: 'url', required: false }
+            { name: 'description', label: 'Detailed Description', type: 'textarea', required: false },
+            { name: 'credentialId', label: 'Credential / Hash ID', type: 'text', required: false },
+            { name: 'image', label: 'Certificate Image / Badge', type: 'image', required: false },
+            { name: 'credentialUrl', label: 'Credential / Verification Link', type: 'url', required: false }
         ]
     },
     achievements: {
@@ -100,6 +111,7 @@ const cmsSchemas = {
             { name: 'company', label: 'Company/University', type: 'text', required: false },
             { name: 'avatar', label: 'Reviewer Photo', type: 'image', required: false },
             { name: 'rating', label: 'Rating (1-5)', type: 'select', options: ['5', '4', '3', '2', '1'], required: true },
+            { name: 'status', label: 'Review Status', type: 'select', options: ['pending', 'approved', 'rejected'], required: true },
             { name: 'quote', label: 'Testimonial Quote', type: 'textarea', required: true }
         ]
     },
@@ -112,20 +124,71 @@ const cmsSchemas = {
             { name: 'answer', label: 'Answer Body', type: 'textarea', required: true },
             { name: 'category', label: 'FAQ Category', type: 'text', required: false }
         ]
+    },
+    experience: {
+        icon: History,
+        titleKey: 'title',
+        descKey: 'year',
+        fields: [
+            { name: 'title', label: 'Experience/Milestone Title', type: 'text', required: true },
+            { name: 'year', label: 'Era/Year (e.g. 2023 - 2024)', type: 'text', required: true },
+            { name: 'description', label: 'Detailed Narrative', type: 'textarea', required: true },
+            { name: 'icon', label: 'Lucide Icon Name (e.g., Code, Cpu, Database)', type: 'text', required: false },
+            { name: 'image', label: 'Milestone Visual (Optional)', type: 'image', required: false },
+            { name: 'order', label: 'Timeline Sort Weight (Ascending)', type: 'number', required: true },
+            { name: 'status', label: 'Deployment Status', type: 'select', options: ['published', 'draft'], required: true }
+        ]
+    },
+    education: {
+        icon: GraduationCap,
+        titleKey: 'degree',
+        descKey: 'institution',
+        fields: [
+            { name: 'degree', label: 'Degree Name', type: 'text', required: true },
+            { name: 'institution', label: 'School / University', type: 'text', required: true },
+            { name: 'duration', label: 'Duration (e.g. 2021 - 2025)', type: 'text', required: true },
+            { name: 'status', label: 'Completion Status', type: 'select', options: ['Currently Pursuing', 'Completed', 'Dropped'], required: true },
+            { name: 'description', label: 'Highlights / Core Subjects', type: 'textarea', required: true },
+            { name: 'order', label: 'Display Order', type: 'number', required: true }
+        ]
+    },
+    skills: {
+        icon: Code2,
+        titleKey: 'title',
+        descKey: 'icon',
+        fields: [
+            { name: 'title', label: 'Category Title (e.g. AI/ML)', type: 'text', required: true },
+            { name: 'icon', label: 'Lucide Icon Name', type: 'text', required: false },
+            { name: 'isSpecial', label: 'Highlight Category?', type: 'checkbox', required: false },
+            { name: 'skills', label: 'Skills in this Category', type: 'skills-editor', required: true },
+            { name: 'order', label: 'Display Order', type: 'number', required: true }
+        ]
+    },
+    gallery: {
+        icon: ImageIcon,
+        titleKey: 'title',
+        descKey: 'category',
+        fields: [
+            { name: 'title', label: 'Visual Title', type: 'text', required: true },
+            { name: 'imageUrl', label: 'Visual Asset', type: 'image', required: true },
+            { name: 'category', label: 'Asset Log Category', type: 'select', options: ['project', 'blog', 'upload'], required: true },
+            { name: 'description', label: 'Lore/Context (Optional)', type: 'textarea', required: false },
+            { name: 'order', label: 'Grid Weight (Sorting)', type: 'number', required: true },
+            { name: 'status', label: 'Visibility Log', type: 'select', options: ['published', 'draft'], required: true }
+        ]
     }
 };
 
 const AdminDashboard = () => {
     const { logout, token } = useContext(AuthContext);
+    const { theme: activeTheme } = useContext(ThemeContext);
     const { tab } = useParams();
     const navigate = useNavigate();
     
-    // Default to overview if no tab matches
     const validTabs = [...Object.keys(cmsSchemas), 'overview', 'messages', 'media'];
     const activeTab = validTabs.includes(tab) ? tab : 'overview';
     
     const [collectionData, setCollectionData] = useState([]);
-    const [mediaFiles, setMediaFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -133,6 +196,8 @@ const AdminDashboard = () => {
     const [counts, setCounts] = useState({ projects: 0, blogs: 0, messages: 0 });
     const [formData, setFormData] = useState({});
     const [inboxFilter, setInboxFilter] = useState('all');
+    const [reviewFilter, setReviewFilter] = useState('all');
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     useEffect(() => {
         fetchCollectionData();
@@ -141,175 +206,129 @@ const AdminDashboard = () => {
         setFormData({});
     }, [activeTab]);
 
+    useEffect(() => {
+        fetchCounts();
+    }, []);
+
+    const fetchCounts = async () => {
+        try {
+            const res = await fetch('/api/admin/counts', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            setCounts(data);
+        } catch (err) {}
+    };
+
     const fetchCollectionData = async () => {
-        if (activeTab === 'overview') {
-            setLoading(true);
-            try {
-                const res = await fetch('/api/stats', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setCounts(data);
-                }
-            } catch (err) {
-                console.error('Stats fetch error:', err);
-            } finally {
-                setLoading(false);
-            }
-            return;
-        }
+        if (activeTab === 'overview' || activeTab === 'media') return;
         setLoading(true);
         try {
-            const headers = activeTab === 'messages' ? { 'Authorization': `Bearer ${token}` } : {};
-            const res = await fetch(`/api/${activeTab}`, { headers });
+            const url = activeTab === 'messages' ? '/api/messages' : `/api/${activeTab}`;
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const data = await res.json();
-            setCollectionData(data.data || []);
+            setCollectionData(Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []);
         } catch (err) {
-            console.error('Fetch error:', err);
+            console.error(err);
+            setCollectionData([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const method = editingId ? 'PUT' : 'POST';
+            const url = editingId ? `/api/${activeTab}/${editingId}` : `/api/${activeTab}`;
+            
+            // Auto-generate slug for projects and blogs if not present
+            const submissionData = { ...formData };
+            if ((activeTab === 'projects' || activeTab === 'blogs') && !submissionData.slug) {
+                submissionData.slug = generateSlug(submissionData.title || "");
+            }
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(submissionData)
+            });
+
+            if (res.ok) {
+                setIsFormOpen(false);
+                setEditingId(null);
+                setFormData({});
+                fetchCollectionData();
+                fetchCounts();
+            }
+        } catch (err) {
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this document permanently?")) return;
-
+        if (!window.confirm('IRREVERSIBLE ACTION: Confirm permanent erasure of document?')) return;
         try {
-            const res = await fetch(`/api/${activeTab}/${id}`, {
+            const url = activeTab === 'messages' ? `/api/messages/${id}` : `/api/${activeTab}/${id}`;
+            const res = await fetch(url, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 fetchCollectionData();
-            } else {
-                alert('Failed to delete document');
+                fetchCounts();
             }
-        } catch (err) {
-            console.error('Delete Error:', err);
-            alert('Delete network error.');
-        }
-    };
-
-    const toggleReadStatus = async (message) => {
-        try {
-            const res = await fetch(`/api/messages/${message._id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify({ isRead: !message.isRead })
-            });
-            if (res.ok) fetchCollectionData();
-        } catch (err) {
-            console.error('Toggle Read Error:', err);
-        }
+        } catch (err) {}
     };
 
     const handleEdit = (item) => {
-        let prepopulatedData = { ...item };
-        
-        // Convert Arrays
-        if (activeTab === 'projects' && Array.isArray(item.techStack)) {
-            prepopulatedData.techStack = item.techStack.join(', ');
-        }
-        
-        // Convert Dates
-        if (item.dateIssued) prepopulatedData.dateIssued = new Date(item.dateIssued).toISOString().split('T')[0];
-        if (item.date) prepopulatedData.date = new Date(item.date).toISOString().split('T')[0];
-        
-        // Convert Numbers to string for selects
-        if (item.rating) prepopulatedData.rating = item.rating.toString();
-
-        setFormData(prepopulatedData);
         setEditingId(item._id);
+        setFormData(item);
         setIsFormOpen(true);
     };
 
-    const handleImageUpload = async (e, fieldName) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        // Optimistic UI Preview
-        const loaderPreview = URL.createObjectURL(file);
-        setFormData(prev => ({ ...prev, [fieldName]: loaderPreview }));
-        
-        const formDataPayload = new FormData();
-        formDataPayload.append('image', file);
-        
+    const toggleReadStatus = async (m) => {
         try {
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formDataPayload
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setFormData(prev => ({ ...prev, [fieldName]: data.url }));
-            } else {
-                alert('Upload failed: ' + data.message);
-                setFormData(prev => ({ ...prev, [fieldName]: '' })); // Revert on fail
-            }
-        } catch (err) {
-            console.error('Upload Error:', err);
-            alert('Upload network error.');
-            setFormData(prev => ({ ...prev, [fieldName]: '' }));
-        }
-    };
-
-    const handleFormSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            let payload = { ...formData };
-            
-            // Generate URL Slugs automatically
-            if (activeTab === 'projects' || activeTab === 'blogs') {
-                payload.slug = generateSlug(payload.title);
-            }
-            
-            // Parse Arrays
-            if (activeTab === 'projects' && typeof payload.techStack === 'string') {
-                payload.techStack = payload.techStack.split(',').map(t => t.trim()).filter(t => t);
-            }
-
-            // Parse Numbers
-            if (activeTab === 'testimonials' && payload.rating) {
-                payload.rating = Number(payload.rating);
-            }
-
-            const url = editingId ? `/api/${activeTab}/${editingId}` : `/api/${activeTab}`;
-            const method = editingId ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method,
+            const res = await fetch(`/api/contact/${m._id}`, {
+                method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ isRead: !m.isRead })
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Server API Rejection:", errorData);
-                alert(`Error saving to database!\nReason: ${errorData.message}\nCheck browser console for exact details.`);
-                return;
-            }
-            
-            // If response is OK
-            setIsFormOpen(false);
-            setEditingId(null);
-            setFormData({});
-            fetchCollectionData(); // Fixed typo from fetchData to fetchCollectionData
-        } catch (err) {
-            console.error("Save error", err);
-            alert("Network error while trying to save the form.");
-        }
+            if (res.ok) fetchCollectionData();
+        } catch (err) {}
     };
 
-    const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const updateReviewStatus = async (item, status) => {
+        try {
+            const res = await fetch(`/api/testimonials/${item._id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ ...item, status })
+            });
+            if (res.ok) fetchCollectionData();
+        } catch (err) {}
     };
 
     const renderDynamicForm = () => {
@@ -317,119 +336,118 @@ const AdminDashboard = () => {
         if (!schema) return null;
 
         return (
-            <GlassCard className="max-w-3xl border-t-4 border-coffee-500 shadow-2xl">
-                <h3 className="text-xl font-bold mb-6 text-coffee-900 dark:text-coffee-100 flex items-center gap-2">
-                    {editingId ? <Edit size={20} className="text-coffee-500" /> : <Plus size={20} className="text-coffee-500" />} 
-                    {editingId ? 'Edit Existing Record' : 'Deploy New Record'}
-                </h3>
-                <form onSubmit={handleFormSubmit} className="space-y-5 pb-2">
-                    {schema.fields.map((field) => (
-                        <div key={field.name}>
-                            <label className="block text-xs font-bold text-coffee-800 dark:text-coffee-200 mb-2 uppercase tracking-widest opacity-80 flex items-center gap-2">
-                                {field.label} {field.required && <span className="text-red-500">*</span>}
-                            </label>
-                            
-                            {field.type === 'markdown' ? (
-                                <div className="flex flex-col xl:flex-row gap-4 h-[400px]">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-[var(--bg-glass)] backdrop-blur-2xl border border-[var(--border)] rounded-[40px] p-8 md:p-12 shadow-2xl max-w-4xl mx-auto"
+            >
+                <div className="flex items-center gap-4 mb-10 border-b border-[var(--border)] pb-8">
+                    <div className="p-4 bg-[var(--accent)]/10 text-[var(--accent)] rounded-2xl border border-[var(--accent)]/30">
+                        <schema.icon size={28} />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase">
+                            {editingId ? 'Modify_Module' : 'Deploy_New_Module'}
+                        </h2>
+                        <p className="text-[10px] font-black tracking-[0.3em] text-[var(--accent)] uppercase mt-1">
+                            System_Config // {activeTab}
+                        </p>
+                    </div>
+                </div>
+
+                <form onSubmit={handleFormSubmit} className="space-y-8">
+                    {schema.fields.map(field => {
+                        // Skip if condition exists and returns false
+                        if (field.condition && !field.condition(formData)) return null;
+                        
+                        return (
+                            <div key={field.name} className="flex flex-col gap-3">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-50 flex items-center gap-2">
+                                    <Activity size={10} className="text-[var(--accent)]" />
+                                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                                </label>
+                                
+                               {field.type === 'textarea' ? (
+                                <textarea 
+                                    name={field.name}
+                                    required={field.required}
+                                    value={formData[field.name] || ''}
+                                    onChange={handleInputChange}
+                                    rows={5}
+                                    className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-5 py-4 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] transition-all text-[var(--text-primary)] shadow-inner resize-none italic"
+                                />
+                            ) : field.type === 'markdown' ? (
+                                <div className="space-y-4">
                                     <textarea 
                                         name={field.name}
                                         required={field.required}
                                         value={formData[field.name] || ''}
                                         onChange={handleInputChange}
-                                        placeholder="Use Markdown formatting here... (# Header, **bold**, etc.)"
-                                        className="w-full xl:w-1/2 h-full bg-white/70 dark:bg-[#0c0c0c] border border-coffee-200 dark:border-white/10 rounded-xl p-4 outline-none resize-none focus:ring-2 focus:ring-coffee-500/50 font-mono text-sm leading-relaxed text-coffee-900 dark:text-coffee-100"
+                                        rows={12}
+                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-5 py-4 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] transition-all text-[var(--text-primary)] font-mono text-sm leading-relaxed"
+                                        placeholder="# Start writing lore..."
                                     />
-                                    <div className="w-full xl:w-1/2 h-full bg-white/40 dark:bg-black/40 border border-coffee-200 dark:border-white/10 rounded-xl p-5 overflow-y-auto prose dark:prose-invert max-w-none text-sm leading-snug">
-                                        {formData[field.name] ? (
-                                            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
-                                                {formData[field.name]}
-                                            </ReactMarkdown>
-                                        ) : (
-                                            <div className="h-full flex items-center justify-center opacity-30 font-bold font-mono tracking-widest uppercase">Live Markdown Preview</div>
-                                        )}
+                                    <div className={`p-6 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl prose prose-sm max-w-none ${activeTheme === 'dev-dark' ? 'prose-invert' : ''}`}>
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{formData[field.name] || '*Live Preview Initialized*'}</ReactMarkdown>
                                     </div>
                                 </div>
-                            ) : field.type === 'tags' ? (
-                                <div className="space-y-3">
-                                    <div className="flex flex-wrap gap-2 min-h-8">
-                                        {(formData[field.name] || []).map((tag, idx) => (
-                                            <span key={idx} className="bg-coffee-200 dark:bg-coffee-900/50 text-coffee-800 dark:text-coffee-200 px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 border border-coffee-300 dark:border-white/10">
-                                                #{tag}
-                                                <button type="button" onClick={() => {
-                                                    const newArr = [...formData[field.name]];
-                                                    newArr.splice(idx, 1);
-                                                    setFormData(prev => ({...prev, [field.name]: newArr}));
-                                                }} className="hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <input 
-                                        type="text"
-                                        placeholder="Type a tag and press Enter..."
-                                        onKeyDown={(e) => {
-                                            if(e.key === 'Enter' || e.key === ',') {
-                                                e.preventDefault();
-                                                const val = e.target.value.trim().replace(/^#/, '');
-                                                if(val && !(formData[field.name] || []).includes(val)) {
-                                                    setFormData(prev => ({...prev, [field.name]: [...(prev[field.name] || []), val]}));
-                                                }
-                                                e.target.value = '';
-                                            }
-                                        }}
-                                        className="w-full bg-white/70 dark:bg-[#0c0c0c] border border-coffee-200 dark:border-white/10 rounded-xl p-3 outline-none focus:ring-2 focus:ring-coffee-500/50 transition-shadow text-coffee-900 dark:text-coffee-100"
-                                    />
-                                    <p className="text-[10px] text-coffee-500 uppercase tracking-widest mt-1">Press Enter to add tag.</p>
-                                </div>
-                            ) : field.type === 'textarea' ? (
-                                <textarea 
-                                    name={field.name}
-                                    required={field.required}
-                                    rows="5"
-                                    value={formData[field.name] || ''}
-                                    onChange={handleInputChange}
-                                    className="w-full bg-white/70 dark:bg-[#0c0c0c] border border-coffee-200 dark:border-white/10 rounded-xl p-3 outline-none resize-y focus:ring-2 focus:ring-coffee-500/50 transition-shadow text-coffee-900 dark:text-coffee-100" 
-                                />
                             ) : field.type === 'select' ? (
-                                <select
+                                <select 
                                     name={field.name}
                                     required={field.required}
                                     value={formData[field.name] || ''}
                                     onChange={handleInputChange}
-                                    className="w-full bg-white/70 dark:bg-[#0c0c0c] border border-coffee-200 dark:border-white/10 rounded-xl p-3 outline-none focus:ring-2 focus:ring-coffee-500/50 transition-shadow text-coffee-900 dark:text-coffee-100"
+                                    className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-5 py-4 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] transition-all text-[var(--text-primary)] appearance-none cursor-pointer italic"
                                 >
-                                    <option value="" disabled>Select {field.label}</option>
-                                    {field.options.map(opt => (
-                                        <option key={opt} value={opt}>{opt}</option>
-                                    ))}
+                                    <option value="" className="bg-[var(--bg-primary)]">Select Parameters...</option>
+                                    {field.options.map(opt => <option key={opt} value={opt} className="bg-[var(--bg-primary)]">{opt}</option>)}
                                 </select>
                             ) : field.type === 'image' ? (
-                                <div className="relative group p-6 border-2 border-dashed border-coffee-300 dark:border-white/20 rounded-xl hover:border-coffee-500 hover:bg-white/5 transition-all text-center cursor-pointer overflow-hidden max-w-sm mx-auto">
-                                    <input 
-                                        type="file" 
-                                        accept="image/*"
-                                        onChange={(e) => handleImageUpload(e, field.name)}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                                    />
-                                    {formData[field.name] ? (
-                                        <div className="relative z-10 flex flex-col items-center">
-                                            <img src={formData[field.name]} alt="Preview" className="h-40 object-contain rounded-lg shadow-md mb-3 border border-coffee-200 dark:border-white/10" />
-                                            <span className="text-xs font-bold uppercase tracking-widest bg-coffee-900/80 text-white dark:bg-black/80 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">Click to Replace</span>
-                                        </div>
-                                    ) : (
-                                        <div className="relative z-10 flex flex-col items-center gap-3 text-coffee-600 dark:text-coffee-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                                            <div className="p-3 bg-coffee-100 dark:bg-white/5 rounded-full"><ImageIcon size={28} /></div>
-                                            <div className="flex flex-col gap-1">
-                                                <span className="font-bold">Drop Image or Click</span>
-                                                <span className="text-xs opacity-70">JPG, PNG, WEBP (Max 10MB)</span>
+                                <div className="flex gap-4 items-center">
+                                    <div className="flex-1 relative group">
+                                        <input 
+                                            type="text"
+                                            name={field.name}
+                                            required={field.required}
+                                            value={formData[field.name] || ''}
+                                            onChange={handleInputChange}
+                                            placeholder="Asset Cloud URL..."
+                                            className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-5 py-4 outline-none focus:border-[var(--accent)]/50 transition-all text-[var(--text-primary)] italic"
+                                        />
+                                        <input 
+                                            type="file" accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files[0];
+                                                if(!file) return;
+                                                const payload = new FormData();
+                                                payload.append('image', file);
+                                                try {
+                                                    const res = await fetch('/api/upload', {
+                                                        method: 'POST',
+                                                        headers: { 'Authorization': `Bearer ${token}` },
+                                                        body: payload
+                                                    });
+                                                    const data = await res.json();
+                                                    setFormData(prev => ({ ...prev, [field.name]: data.url }));
+                                                } catch (err) {}
+                                            }}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        />
+                                    </div>
+                                    {formData[field.name] && (
+                                        <div className="w-16 h-16 rounded-xl border border-[var(--border)] overflow-hidden shrink-0 group relative">
+                                            <img src={formData[field.name]} alt="Preview" className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                <ImageIcon size={16} className="text-[var(--accent)]" />
                                             </div>
                                         </div>
                                     )}
                                 </div>
                             ) : field.type === 'image-gallery' ? (
-                                <div className="space-y-3 p-4 border border-coffee-200 dark:border-white/10 rounded-xl bg-white/30 dark:bg-[#0c0c0c]/50">
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                <div className="space-y-4 p-8 border border-[var(--border)] rounded-3xl bg-[var(--bg-secondary)]">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                                         {(formData[field.name] || []).map((img, idx) => (
-                                            <div key={idx} className="relative group rounded-lg overflow-hidden border border-coffee-200 dark:border-white/10 aspect-square">
+                                            <div key={idx} className="relative group rounded-2xl overflow-hidden border border-[var(--border)] aspect-square shadow-xl transition-all hover:scale-105">
                                                 <img src={img} alt="Gallery item" className="w-full h-full object-cover" />
                                                 <button 
                                                     type="button" 
@@ -438,13 +456,13 @@ const AdminDashboard = () => {
                                                         newArr.splice(idx, 1);
                                                         setFormData(prev => ({ ...prev, [field.name]: newArr }));
                                                     }} 
-                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                                                    className="absolute top-2 right-2 bg-red-500/80 text-white rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-md"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         ))}
-                                        <div className="relative flex flex-col items-center justify-center p-2 border-2 border-dashed border-coffee-300 dark:border-white/20 rounded-lg hover:border-coffee-500 hover:bg-white/10 transition-colors cursor-pointer aspect-square">
+                                        <div className="relative flex flex-col items-center justify-center border-2 border-dashed border-[var(--border)] rounded-2xl hover:border-[var(--accent)]/50 hover:bg-[var(--bg-glass)] transition-all cursor-pointer aspect-square group">
                                             <input 
                                                 type="file" multiple accept="image/*"
                                                 onChange={async (e) => {
@@ -452,143 +470,284 @@ const AdminDashboard = () => {
                                                     const urls = [];
                                                     for(let file of files) {
                                                         const payload = new FormData();
-                                                        payload.append('image', file);
+                                                        payload.append('images', file);
                                                         try {
-                                                            const res = await fetch('/api/upload', {
+                                                            const res = await fetch('/api/upload/bulk', {
                                                                 method: 'POST',
                                                                 headers: { 'Authorization': `Bearer ${token}` },
                                                                 body: payload
                                                             });
-                                                            if(res.ok) {
-                                                                const data = await res.json();
-                                                                urls.push(data.url);
-                                                            }
-                                                        } catch (err) {
-                                                            console.error(err);
-                                                        }
+                                                            const data = await res.json();
+                                                            urls.push(...(data.data || [data.url]));
+                                                        } catch (err) {}
                                                     }
                                                     setFormData(prev => ({ ...prev, [field.name]: [...(prev[field.name] || []), ...urls] }));
                                                 }}
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                                             />
-                                            <Plus size={24} className="text-coffee-400 mb-1" />
-                                            <span className="text-[10px] text-coffee-500 font-bold uppercase tracking-wider text-center">Add<br/>Photos</span>
+                                            <Plus size={32} className="text-[var(--text-secondary)] opacity-20 group-hover:text-[var(--accent)] group-hover:scale-110 transition-all" />
+                                            <span className="text-[10px] text-[var(--text-secondary)] opacity-30 font-black uppercase tracking-widest mt-2 group-hover:opacity-100 group-hover:text-[var(--text-primary)] transition-colors">Add_Visuals</span>
                                         </div>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="relative">
-                                    {(field.type === 'url' && formData[field.name]) && (
-                                        <ImageIcon size={16} className="absolute right-4 top-3.5 text-coffee-400 opacity-50" />
-                                    )}
-                                    <input 
-                                        type={field.type}
+                            ) : field.type === 'skills-editor' ? (
+                                <div className="space-y-4 p-8 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-3xl">
+                                    <textarea 
                                         name={field.name}
                                         required={field.required}
-                                        value={formData[field.name] || ''}
-                                        onChange={handleInputChange}
-                                        className="w-full bg-white/70 dark:bg-[#0c0c0c] border border-coffee-200 dark:border-white/10 rounded-xl p-3 outline-none focus:ring-2 focus:ring-coffee-500/50 transition-shadow text-coffee-900 dark:text-coffee-100" 
+                                        placeholder='JSON skill data or comma-separated list...'
+                                        value={typeof formData[field.name] === 'object' ? JSON.stringify(formData[field.name], null, 2) : formData[field.name] || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setFormData(prev => ({ ...prev, [field.name]: val }));
+                                        }}
+                                        className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-5 py-4 outline-none focus:border-[var(--accent)]/50 text-[var(--text-primary)] font-mono text-xs h-32"
                                     />
+                                    <p className="text-[10px] text-[var(--accent)] font-bold italic opacity-60 uppercase tracking-widest">Authorized_JSON_Buffer_Only</p>
                                 </div>
+                            ) : field.type === 'project-builder' ? (
+                                <ProjectBlocksBuilder 
+                                    sections={formData[field.name]?.sections || []} 
+                                    onChange={(newSections) => setFormData(prev => ({ 
+                                        ...prev, 
+                                        [field.name]: { ...prev[field.name], sections: newSections } 
+                                    }))} 
+                                />
+                            ) : field.type === 'project-code-editor' ? (
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-4 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-full px-6 py-3 w-fit">
+                                        <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg"><Monitor size={14}/></div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">Custom_Case_Study_Compiler</span>
+                                    </div>
+                                    <div className="relative group/custom">
+                                        <textarea 
+                                            name={field.name}
+                                            required={field.required}
+                                            value={formData[field.name] || ''}
+                                            onChange={handleInputChange}
+                                            rows={20}
+                                            className="w-full bg-black/40 border border-[var(--border)] rounded-[32px] p-10 font-mono text-xs leading-relaxed text-[#a9b1d6] outline-none shadow-2xl focus:border-[var(--accent)]/40 transition-all font-mono"
+                                            placeholder="<html>\n  <section>\n    <h1>Special Layout</h1>\n  </section>\n</html>"
+                                        />
+                                        <div className="absolute top-6 right-8 text-[8px] font-black text-white/10 uppercase tracking-[0.4em]">Advanced_Authoring_Layer</div>
+                                    </div>
+                                    <div className="p-8 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[32px] prose prose-invert max-w-none min-h-[100px]">
+                                        <div dangerouslySetInnerHTML={{ __html: formData[field.name] || '<p class="opacity-20 italic">Awaiting_Source_Compilation...</p>' }} />
+                                    </div>
+                                </div>
+                            ) : (
+                                <input 
+                                    type={field.type}
+                                    name={field.name}
+                                    required={field.required}
+                                    value={formData[field.name] || ''}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-5 py-4 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] transition-all text-[var(--text-primary)] shadow-inner block italic" 
+                                />
                             )}
                         </div>
-                    ))}
-                    <div className="pt-6 flex justify-end gap-4 border-t border-coffee-200 dark:border-white/10">
-                        <PremiumButton type="button" variant="secondary" onClick={() => { setIsFormOpen(false); setEditingId(null); }}>Cancel</PremiumButton>
-                        <PremiumButton type="submit" variant="primary">
-                            {editingId ? 'Save Changes' : 'Publish Document'}
-                        </PremiumButton>
+                    );
+                })}
+                    
+                    <div className="pt-10 mt-10 flex justify-end gap-6 border-t border-[var(--border)]">
+                        <button 
+                            type="button" 
+                            onClick={() => { setIsFormOpen(false); setEditingId(null); }}
+                            className="px-8 py-3 rounded-2xl font-black text-[var(--text-secondary)] opacity-30 hover:opacity-100 hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all text-[10px] uppercase tracking-widest"
+                        >
+                            Abort_Protocol
+                        </button>
+                        <button 
+                            type="submit" 
+                            className="px-10 py-3 rounded-2xl font-black text-black bg-[var(--accent)] hover:scale-105 transition-all shadow-[0_0_30px_var(--accent-glow)] text-[10px] uppercase tracking-widest"
+                        >
+                            {editingId ? 'Modify_Data' : 'Deploy_Live'}
+                        </button>
                     </div>
                 </form>
-            </GlassCard>
+            </motion.div>
+        );
+    };
+
+    const renderReviewList = () => {
+        const filteredReviews = collectionData.filter(r => {
+            if (reviewFilter === 'all') return true;
+            return r.status === reviewFilter;
+        });
+
+        return (
+            <div className="space-y-6">
+                <div className="flex flex-col md:flex-row gap-6 mb-10">
+                    <div className="flex bg-[var(--bg-glass)] p-1.5 rounded-[22px] border border-[var(--border)] shrink-0 backdrop-blur-md">
+                        {['all', 'pending', 'approved', 'rejected'].map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setReviewFilter(f)}
+                                className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-3 ${reviewFilter === f ? 'bg-[var(--accent)] text-black shadow-[0_0_20px_var(--accent-glow)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'}`}
+                            >
+                                {f}
+                                {f === 'pending' && <span className="bg-orange-500/20 text-orange-500 px-2 py-0.5 rounded-lg text-[9px] border border-orange-500/30">{collectionData.filter(d => r.status === 'pending').length}</span>}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {filteredReviews.length === 0 ? (
+                    <div className="py-24 text-center border border-[var(--border)] rounded-[40px] bg-[var(--bg-secondary)] shadow-sm backdrop-blur-md">
+                        <Star size={32} className="mx-auto mb-6 text-[var(--text-secondary)] opacity-10" />
+                        <h3 className="text-xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase mb-2">No_Reviews_Detected</h3>
+                        <p className="text-[var(--text-secondary)] opacity-30 text-[10px] font-bold uppercase tracking-widest">Awaiting system feedback transmissions...</p>
+                    </div>
+                ) : (
+                    filteredReviews.map((item, idx) => (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            key={item._id} 
+                            className={`flex flex-col md:flex-row justify-between items-start md:items-center group relative overflow-hidden transition-all bg-[var(--bg-secondary)] border border-[var(--border)] rounded-3xl shadow-xl hover:border-[var(--accent)]/30 ${item.status === 'pending' ? 'border-l-4 border-l-orange-500' : item.status === 'approved' ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500 opacity-60'}`}
+                        >
+                            <div className="flex-1 pl-8 w-full pr-6 flex flex-col justify-center py-6">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <h3 className="font-black text-[var(--text-primary)] text-xl italic tracking-tight truncate">
+                                        {item.name}
+                                    </h3>
+                                    <div className="flex gap-1">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} size={12} fill={i < item.rating ? "var(--accent)" : "none"} className={i < item.rating ? "text-[var(--accent)] drop-shadow-[0_0_5px_var(--accent-glow)]" : "text-[var(--text-secondary)] opacity-20"} />
+                                        ))}
+                                    </div>
+                                    <span className={`text-[8px] uppercase font-black tracking-widest px-3 py-1 rounded-full border border-current ${item.status === 'pending' ? 'text-orange-500' : item.status === 'approved' ? 'text-emerald-500' : 'text-red-500'}`}>
+                                        {item.status || 'pending'}
+                                    </span>
+                                </div>
+                                <p className="text-lg text-[var(--text-secondary)] font-bold italic leading-relaxed mb-4 max-w-3xl">
+                                    "{item.quote}"
+                                </p>
+                                <div className="flex gap-4 text-[9px] text-[var(--text-secondary)] opacity-40 mt-2 font-black uppercase tracking-[0.2em] italic">
+                                    <span className="text-[var(--accent)]">{new Date(item.createdAt).toLocaleDateString()}</span>
+                                    <span>&bull;</span>
+                                    <span className="truncate">{item.role} {item.company ? `| ${item.company}` : ''}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-wrap md:flex-nowrap gap-3 p-6 items-center w-full md:w-auto bg-[var(--bg-glass)] md:bg-transparent border-t md:border-t-0 border-[var(--border)]">
+                                {item.status !== 'approved' && (
+                                    <button 
+                                        onClick={() => updateReviewStatus(item, 'approved')}
+                                        className="px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500 hover:text-white rounded-2xl transition-all flex-1 md:flex-none italic"
+                                    >
+                                        Authorize
+                                    </button>
+                                )}
+                                {item.status !== 'rejected' && (
+                                    <button 
+                                        onClick={() => updateReviewStatus(item, 'rejected')}
+                                        className="px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white rounded-2xl transition-all flex-1 md:flex-none italic"
+                                    >
+                                        Discard
+                                    </button>
+                                )}
+                                <div className="w-px h-10 bg-[var(--border)] hidden md:block mx-1"></div>
+                                <button onClick={() => handleEdit(item)} className="p-3 text-[var(--text-secondary)] opacity-40 hover:opacity-100 hover:text-[var(--accent)] bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl transition-all"><Edit size={18} /></button>
+                                <button onClick={() => handleDelete(item._id)} className="p-3 text-[var(--text-secondary)] opacity-40 hover:opacity-100 hover:text-red-500 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl transition-all"><Trash2 size={18} /></button>
+                            </div>
+                        </motion.div>
+                    ))
+                )}
+            </div>
         );
     };
 
     const renderDataList = () => {
-        if (loading) return <div className="flex justify-center mt-12"><div className="animate-spin h-10 w-10 border-b-2 border-coffee-900 dark:border-coffee-100 rounded-full"></div></div>;
-        if (collectionData.length === 0) return <div className="p-12 text-center text-coffee-600 dark:text-coffee-400 font-medium glass rounded-2xl mt-4 border border-dashed border-coffee-300 dark:border-white/20">Database table is totally empty.<br/>Create your first entry to bring it online!</div>;
+        if (loading) return <div className="flex justify-center mt-32"><div className="w-12 h-12 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin shadow-[0_0_20px_var(--accent-glow)]"></div></div>;
+        if (activeTab === 'testimonials') return renderReviewList();
+            <div className="py-32 text-center border border-[var(--border)] rounded-[50px] mt-10 bg-[var(--bg-secondary)] shadow-2xl backdrop-blur-xl">
+                <div className="w-20 h-20 bg-[var(--bg-primary)] border border-[var(--border)] rounded-3xl flex items-center justify-center mx-auto mb-6 text-[var(--text-secondary)] opacity-10 group-hover:text-[var(--accent)] transition-all">
+                    <Database size={36} />
+                </div>
+                <h3 className="text-2xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase mb-2">No_Data_Segments</h3>
+                <p className="text-[var(--text-secondary)] opacity-30 text-[10px] font-black tracking-widest uppercase mb-8">System memory currently initialized but empty.</p>
+                <PremiumButton onClick={() => setIsFormOpen(true)} className="mx-auto scale-90">Initialize_New_Segment</PremiumButton>
+            </div>
 
         const schema = cmsSchemas[activeTab];
 
         return (
-            <div className="grid gap-4 mt-6">
-                {collectionData.map((item) => (
-                    <GlassCard key={item._id} className="flex justify-between items-center group relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-coffee-500"></div>
+            <div className="grid gap-6 mt-8">
+                {collectionData.map((item, idx) => (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        key={item._id} 
+                        className="flex justify-between items-center group relative overflow-hidden transition-all bg-[var(--bg-glass)] border border-[var(--border)] rounded-[32px] shadow-xl hover:border-[var(--accent)]/30 hover:bg-[var(--bg-secondary)] pr-4"
+                    >
+                        <div className="absolute top-0 left-0 w-2 h-full bg-[var(--accent)] scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom shadow-[0_0_20px_var(--accent-glow)]"></div>
                         
                         {(item.coverImage || item.image || item.avatar) && (
-                            <img src={item.coverImage || item.image || item.avatar} alt="cover" className="h-20 w-24 object-cover shrink-0 ml-4 rounded border border-coffee-200 dark:border-white/10" />
+                            <div className="p-4 shrink-0 relative z-10">
+                                <img src={item.coverImage || item.image || item.avatar} alt="cover" className="h-20 w-24 object-cover rounded-2xl border border-[var(--border)] shadow-lg group-hover:scale-105 transition-transform" />
+                            </div>
                         )}
 
-                        <div className={`pl-4 w-full pr-4 flex flex-col justify-center py-2 ${(item.coverImage || item.image || item.avatar) ? '' : 'pl-6'}`}>
-                            <h3 className="font-bold text-coffee-900 dark:text-coffee-100 text-lg mb-1 truncate pr-20">
-                                {item[schema.titleKey] || 'Untitled Object'}
+                        <div className={`pl-6 w-full pr-8 flex flex-col justify-center py-6 relative z-10 min-w-0 ${(item.coverImage || item.image || item.avatar) ? '' : 'pl-10'}`}>
+                            <h3 className="font-black text-[var(--text-primary)] text-xl italic tracking-tight mb-1 truncate group-hover:text-[var(--accent)] transition-colors">
+                                {item[schema.titleKey] || 'Untitled_Object'}
                             </h3>
-                            <p className="text-sm text-coffee-600 dark:text-coffee-400 line-clamp-1 pr-20 opacity-80">
+                            <p className="text-[11px] text-[var(--text-secondary)] opacity-40 font-bold italic line-clamp-1 group-hover:opacity-60 transition-colors uppercase tracking-wide">
                                 {item[schema.descKey] || ''}
                             </p>
-                            <div className="flex gap-3 text-[10px] text-coffee-500 dark:text-coffee-400 mt-3 font-mono uppercase tracking-wider font-bold">
-                                <span>ID: {item._id.slice(-6)}</span>
-                                {(item.category || item.status) && <span>|</span>}
-                                {item.status && <span className="text-blue-500">{item.status}</span>}
-                                {item.category && <span className="text-coffee-700 dark:text-coffee-300">{item.category}</span>}
+                            <div className="flex gap-4 text-[9px] text-[var(--text-secondary)] opacity-20 mt-4 font-black uppercase tracking-[0.2em] italic">
+                                <span className="text-[var(--accent)] truncate">ID: {item._id.slice(-6)}</span>
+                                {(item.category || item.status) && <span>&bull;</span>}
+                                {item.status && <span className="px-2 py-0.5 border border-blue-500/30 text-blue-500 rounded-lg">{item.status}</span>}
+                                {item.category && <span className="text-[var(--text-primary)] opacity-60 truncate">{item.category}</span>}
                             </div>
                         </div>
                         
-                        <div className="flex gap-2 p-4 opacity-0 group-hover:opacity-100 transition-all bg-gradient-to-l from-white dark:from-[#080808] via-white/95 dark:via-[#080808]/95 to-transparent pl-12 absolute right-0 top-0 h-full items-center translate-x-4 group-hover:translate-x-0">
-                            <button 
-                                onClick={() => handleEdit(item)}
-                                className="p-2.5 text-coffee-700 bg-coffee-100/50 hover:bg-coffee-600 hover:text-white dark:text-coffee-200 dark:bg-white/5 dark:hover:bg-coffee-500 rounded-xl transition-all shadow-sm"
-                                title="Edit Document"
-                            >
-                                <Edit size={18} />
-                            </button>
+                        <div className="flex gap-3 items-center shrink-0 relative z-10">
+                            <button onClick={() => handleEdit(item)} className="p-3.5 text-[var(--text-secondary)] opacity-40 hover:opacity-100 hover:text-[var(--accent)] bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl transition-all group-hover:scale-110"><Edit size={20} /></button>
                             {activeTab !== 'settings' && (
-                                <button 
-                                    onClick={() => handleDelete(item._id)}
-                                    className="p-2.5 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white dark:text-red-400 dark:bg-red-900/10 dark:hover:bg-red-500 rounded-xl transition-all shadow-sm"
-                                    title="Permanently Delete Document"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <button onClick={() => handleDelete(item._id)} className="p-3.5 text-[var(--text-secondary)] opacity-40 hover:opacity-100 hover:text-red-500 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl transition-all group-hover:scale-110"><Trash2 size={20} /></button>
                             )}
                         </div>
-                    </GlassCard>
+                    </motion.div>
                 ))}
             </div>
         );
     };
+
     const renderInbox = () => {
-        
         const filteredMessages = collectionData.filter(m => {
             const matchesSearch = m.name?.toLowerCase().includes(inboxSearch.toLowerCase()) || 
-                                m.email?.toLowerCase().includes(inboxSearch.toLowerCase()) || 
-                                m.message?.toLowerCase().includes(inboxSearch.toLowerCase());
+                                 m.email?.toLowerCase().includes(inboxSearch.toLowerCase()) || 
+                                 m.message?.toLowerCase().includes(inboxSearch.toLowerCase());
             const matchesFilter = inboxFilter === 'all' || 
-                                (inboxFilter === 'unread' && !m.isRead) || 
-                                (inboxFilter === 'read' && m.isRead);
+                                 (inboxFilter === 'unread' && !m.isRead) || 
+                                 (inboxFilter === 'read' && m.isRead);
             return matchesSearch && matchesFilter;
         });
 
         return (
-            <div className="space-y-4 mt-6">
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    <div className="relative flex-grow">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
+            <div className="space-y-6">
+                <div className="flex flex-col md:flex-row gap-6 mb-10">
+                    <div className="relative flex-grow group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] opacity-30 group-focus-within:text-[var(--accent)] transition-colors" size={20} />
                         <input 
                             type="text" 
-                            placeholder="Find messages..." 
+                            placeholder="Search crypted transmissions..." 
                             value={inboxSearch}
                             onChange={(e) => setInboxSearch(e.target.value)}
-                            className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl p-3 pl-12 outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                            className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[22px] py-4 pl-14 pr-6 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] shadow-2xl transition-all text-[var(--text-primary)] font-bold italic text-sm"
                         />
                     </div>
-                    <div className="flex bg-[var(--bg-secondary)] p-1 rounded-xl border border-[var(--border)]">
+                    <div className="flex bg-[var(--bg-secondary)] p-1.5 rounded-[22px] border border-[var(--border)] backdrop-blur-md">
                         {['all', 'unread', 'read'].map(f => (
                             <button
                                 key={f}
                                 onClick={() => setInboxFilter(f)}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${inboxFilter === f ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)] hover:opacity-70'}`}
+                                className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all italic ${inboxFilter === f ? 'bg-[var(--accent)] text-black shadow-[0_0_20px_var(--accent-glow)]' : 'text-[var(--text-secondary)] opacity-60 hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'}`}
                             >
                                 {f}
                             </button>
@@ -597,217 +756,246 @@ const AdminDashboard = () => {
                 </div>
 
                 {filteredMessages.length === 0 ? (
-                    <div className="p-20 text-center glass border border-dashed border-[var(--border)] rounded-[32px]">
-                        <p className="text-[var(--text-secondary)] font-medium italic">No messages found in this category.</p>
+                    <div className="py-32 text-center border border-[var(--border)] rounded-[40px] bg-[var(--bg-secondary)] shadow-2xl backdrop-blur-xl">
+                        <MessageSquare size={36} className="mx-auto mb-6 text-[var(--text-secondary)] opacity-10" />
+                        <h3 className="text-2xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase mb-2">Inbox_Clear</h3>
+                        <p className="text-[var(--text-secondary)] opacity-30 text-[10px] font-black tracking-widest uppercase">No incoming transmissions detected in this frequency center.</p>
                     </div>
                 ) : (
-                    filteredMessages.map(m => (
-                        <GlassCard key={m._id} className={`relative group overflow-hidden border-t-2 ${m.isRead ? 'border-t-coffee-300 dark:border-t-white/10 opacity-70' : 'border-t-blue-500'} hover:shadow-xl hover:opacity-100 transition-all`}>
-                            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                                <div className="w-full">
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-                                        <div className="flex flex-wrap items-center gap-4">
-                                            <h3 className={`font-bold text-lg ${m.isRead ? 'text-coffee-600 dark:text-coffee-400' : 'text-coffee-900 dark:text-coffee-100'}`}>
-                                                {m.name} {!m.isRead && <span className="ml-2 inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>}
-                                            </h3>
-                                            <a href={`mailto:${m.email}`} className="text-xs py-1.5 px-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full font-mono hover:underline">{m.email}</a>
-                                        </div>
-                                        <div className="text-xs text-coffee-500 font-medium whitespace-nowrap">
-                                            {new Date(m.createdAt).toLocaleString()}
-                                        </div>
+                    filteredMessages.map((m, idx) => (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            key={m._id} 
+                            className={`relative group bg-[var(--bg-secondary)] border border-[var(--border)] rounded-[32px] transition-all ${!m.isRead ? 'border-l-4 border-l-[var(--accent)] shadow-[0_0_30px_rgba(var(--accent-rgb),0.05)]' : 'opacity-60'}`}
+                        >
+                            <div className="flex flex-col md:flex-row justify-between items-start gap-8 w-full p-8">
+                                <div className="w-full shrink-0 md:w-72">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <h3 className={`font-black text-xl italic tracking-tight ${!m.isRead ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] opacity-50'}`}>
+                                            {m.name}
+                                        </h3>
+                                        {!m.isRead && <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--accent-glow)] animate-pulse"></span>}
                                     </div>
-                                    <div className={`p-5 rounded-xl border font-medium leading-relaxed ${m.isRead ? 'bg-transparent border-coffee-200/50 dark:border-white/5 text-coffee-600 dark:text-coffee-400' : 'bg-coffee-50/50 dark:bg-black/30 border-coffee-200 dark:border-white/10 text-coffee-800 dark:text-coffee-200'}`}>
+                                    <a href={`mailto:${m.email}`} className="text-[10px] font-black tracking-widest text-[var(--accent)] uppercase hover:text-[var(--text-primary)] transition-colors">{m.email}</a>
+                                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)] opacity-30 mt-6 italic">
+                                        Timestamp // {new Date(m.createdAt).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div className="flex-grow w-full">
+                                    <div className={`p-6 rounded-3xl text-lg italic leading-relaxed ${m.isRead ? 'text-[var(--text-secondary)] opacity-50' : 'bg-[var(--bg-primary)] text-[var(--text-primary)] font-bold shadow-inner border border-[var(--border)]'}`}>
                                         "{m.message}"
                                     </div>
                                 </div>
-                                <div className="flex md:flex-col gap-2 shrink-0 md:ml-4 self-end md:self-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex md:flex-col gap-3 shrink-0 self-end md:self-auto opacity-0 group-hover:opacity-100 transition-all">
                                     <button 
                                         onClick={() => toggleReadStatus(m)}
-                                        className={`px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-colors border ${m.isRead ? 'bg-coffee-100 dark:bg-white/5 text-coffee-700 dark:text-coffee-300 border-coffee-200 dark:border-white/10 hover:bg-coffee-200 dark:hover:bg-white/10' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/40'}`}
+                                        className={`px-6 py-3 text-[9px] font-black uppercase tracking-widest rounded-2xl transition-all flex items-center gap-3 italic ${m.isRead ? 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)]' : 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/30 hover:bg-[var(--accent)] hover:text-black hover:shadow-[0_0_20px_var(--accent-glow)]'}`}
                                     >
-                                        {m.isRead ? 'Mark Unread' : 'Mark Read'}
+                                        {m.isRead ? 'Set_Unread' : 'Authorize_Read'}
                                     </button>
                                     <button 
                                         onClick={() => handleDelete(m._id)}
-                                        className="p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors flex items-center justify-center border border-transparent hover:border-red-600 shadow-sm"
-                                        title="Erase Message"
+                                        className="p-3.5 text-[var(--text-secondary)] opacity-40 hover:opacity-100 hover:text-red-500 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl transition-all flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/30"
+                                        title="Erase Memory"
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={20} />
                                     </button>
                                 </div>
                             </div>
-                        </GlassCard>
+                        </motion.div>
                     ))
                 )}
             </div>
         );
     };
 
-    return (
-        <div className="flex min-h-[calc(100vh-14rem)] relative flex-col md:flex-row gap-8 py-4">
-            <aside className="w-full md:w-64 glass flex flex-col p-5 rounded-2xl border border-coffee-200 dark:border-white/10 shrink-0 md:sticky md:top-24 self-start shadow-lg">
-                <h2 className="hidden md:flex text-xl font-black mb-8 text-coffee-900 dark:text-coffee-100 items-center gap-3">
-                    <Database size={24} className="text-coffee-500" /> Database CMS
-                </h2>
-                <nav className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide flex-grow text-coffee-700 dark:text-coffee-300">
-                    <button 
-                        onClick={() => navigate('/admin')}
-                        className={`flex items-center gap-3 whitespace-nowrap px-4 py-3.5 rounded-xl font-bold transition-all ${activeTab === 'overview' ? 'bg-coffee-900 text-coffee-100 dark:bg-coffee-100 dark:text-coffee-900 shadow-xl scale-[1.02]' : 'hover:bg-coffee-100/50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'}`}
-                    >
-                        <Settings size={18} /> Overview
-                    </button>
-                    {Object.keys(cmsSchemas).map((key) => {
-                        const Icon = cmsSchemas[key].icon;
-                        return (
-                            <button 
-                                key={key}
-                                onClick={() => navigate(`/admin/${key}`)}
-                                className={`flex items-center gap-3 whitespace-nowrap px-4 py-3.5 rounded-xl font-bold transition-all capitalize ${activeTab === key ? 'bg-coffee-900 text-coffee-100 dark:bg-coffee-100 dark:text-coffee-900 shadow-xl scale-[1.02]' : 'hover:bg-coffee-100/50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'}`}
-                            >
-                                <Icon size={18} /> {key}
-                            </button>
-                        );
-                    })}
-                    <div className="w-px h-full md:w-full md:h-px bg-coffee-200 dark:bg-white/10 my-0 md:my-5 mx-2 md:mx-0 shrink-0 opacity-50"></div>
-                    <button 
-                        onClick={() => navigate('/admin/messages')}
-                        className={`flex items-center gap-3 whitespace-nowrap px-4 py-3.5 rounded-xl font-bold transition-all ${activeTab === 'messages' ? 'bg-blue-600 text-white shadow-xl scale-[1.02]' : 'hover:bg-coffee-100/50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'}`}
-                    >
-                        <MessageSquare size={18} /> Inbox
-                    </button>
-                    <button 
-                        onClick={() => navigate('/admin/media')}
-                        className={`flex items-center gap-3 whitespace-nowrap px-4 py-3.5 rounded-xl font-bold transition-all ${activeTab === 'media' ? 'bg-indigo-600 text-white shadow-xl scale-[1.02]' : 'hover:bg-coffee-100/50 dark:hover:bg-white/5 opacity-80 hover:opacity-100'}`}
-                    >
-                        <ImageIcon size={18} /> Media Archive
-                    </button>
-                </nav>
-                <div className="mt-4 md:mt-10 pt-5 border-t border-coffee-200 dark:border-white/10">
-                    <button 
-                        onClick={logout}
-                        className="flex items-center justify-center md:justify-start gap-3 w-full px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-all border border-transparent hover:border-red-500 dark:hover:border-red-500 shadow-sm"
-                    >
-                        <LogOut size={18} /> <span className="hidden md:inline">Secure Lock</span>
-                    </button>
-                </div>
-            </aside>
-
-            <main className="flex-grow w-full overflow-hidden">
-                <AnimatePresence mode="wait">
+    const renderOverview = () => (
+        <div className="space-y-12 pb-20">
+            {/* System Pulse Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {[
+                    { label: 'Active Projects', value: counts?.projects || 0, icon: FolderGit2, color: 'text-[var(--accent)]', glow: 'shadow-[var(--accent-glow)]', trend: 'Systems_Stable' },
+                    { label: 'Cloud Records', value: counts?.blogs || 0, icon: FileText, color: 'text-emerald-500', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]', trend: 'Sync_Complete' },
+                    { label: 'Secure Inbox', value: counts?.messages || 0, icon: MessageSquare, color: 'text-blue-500', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)]', trend: 'Encrypted' },
+                    { label: 'Network Reach', value: '4.2k', icon: Globe, color: 'text-purple-500', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]', trend: 'Expanding' }
+                ].map((stat, index) => (
                     <motion.div 
-                        key={activeTab}
-                        initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.98, y: -10 }}
-                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        key={index} 
+                        className="bg-[var(--bg-secondary)] backdrop-blur-2xl p-8 border border-[var(--border)] rounded-[32px] shadow-2xl hover:border-[var(--accent)]/30 transition-all group relative overflow-hidden"
                     >
-                        <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-center bg-gradient-to-r from-coffee-100/80 to-transparent dark:from-coffee-900/20 glass p-6 rounded-2xl border border-coffee-200 dark:border-white/5 shadow-sm">
-                            <h1 className="text-3xl font-black text-coffee-900 dark:text-coffee-100 capitalize tracking-tight flex items-center gap-4 mb-4 md:mb-0">
-                                {activeTab === 'overview' ? 'Command Center' : `${activeTab}`}
-                            </h1>
-                            {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'settings' && !isFormOpen && (
-                                <PremiumButton onClick={() => setIsFormOpen(true)} className="flex items-center gap-2 !py-2.5 !px-5 shadow-lg group">
-                                    <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Deploy New
-                                </PremiumButton>
-                            )}
-                        </header>
+                        <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/[0.02] to-transparent pointer-events-none" />
+                        <div className="flex justify-between items-start mb-6 relative z-10 w-full">
+                            <div className={`p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border)] ${stat.color} ${stat.glow}`}>
+                                <stat.icon size={24} />
+                            </div>
+                            <span className="text-[10px] font-black tracking-widest text-[var(--text-secondary)] opacity-30 uppercase italic border-b border-[var(--border)] pb-1">{stat.trend}</span>
+                        </div>
+                        <h3 className="text-5xl font-black text-[var(--text-primary)] tracking-tighter mb-1 mt-auto italic drop-shadow-[0_0_15px_rgba(var(--accent-rgb),0.1)]">{stat.value}</h3>
+                        <p className="text-[10px] font-black tracking-[0.3em] text-[var(--text-secondary)] opacity-50 uppercase mt-2 italic">{stat.label}</p>
+                    </motion.div>
+                ))}
+            </div>
 
-                        <div className="h-full">
-                            {activeTab === 'overview' && (
-                                <div className="space-y-8 pb-10">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
-                                        {[
-                                            { label: 'Total Projects', value: counts?.projects || 0, icon: FolderGit2, color: 'text-blue-500', trend: '+12%' },
-                                            { label: 'Published Blogs', value: counts?.blogs || 0, icon: FileText, color: 'text-green-500', trend: '+5%' },
-                                            { label: 'Messages', value: counts?.messages || 0, icon: MessageSquare, color: 'text-purple-500', trend: 'New' },
-                                            { label: 'Profile Views', value: '4.2k', icon: Award, color: 'text-orange-500', trend: '+18%' }
-                                        ].map((stat, index) => (
-                                            <GlassCard key={index} className="flex flex-col p-6 hover:-translate-y-1 transition-transform group relative overflow-hidden">
-                                                <div className="flex justify-between items-start mb-4 relative z-10">
-                                                    <div className={`p-3 rounded-2xl bg-white/50 dark:bg-[#0c0c0c]/50 ${stat.color} shadow-sm border border-white/20 dark:border-white/5`}>
-                                                        <stat.icon size={24} />
-                                                    </div>
-                                                </div>
-                                                <h3 className="text-4xl font-black text-coffee-900 dark:text-coffee-100 tracking-tighter mb-1">{stat.value}</h3>
-                                                <p className="text-sm font-medium text-coffee-600 dark:text-coffee-400 uppercase tracking-widest">{stat.label}</p>
-                                            </GlassCard>
-                                        ))}
-                                    </div>
+            {/* Tactical Intel Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="col-span-1 lg:col-span-2 bg-[var(--bg-secondary)] backdrop-blur-2xl border border-[var(--border)] rounded-[40px] p-10 shadow-3xl">
+                    <div className="flex justify-between items-center mb-10">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl border border-blue-500/20"><TrendingUp size={20}/></div>
+                            <h3 className="text-xl font-black text-[var(--text-primary)] italic tracking-tight uppercase">Traffic_Telemetry</h3>
+                        </div>
+                        <select className="bg-[var(--bg-primary)] border border-[var(--border)] text-[9px] font-black px-4 py-2 rounded-xl text-[var(--text-primary)] outline-none uppercase tracking-widest cursor-pointer hover:border-[var(--accent)] transition-all">
+                            <option className="bg-[var(--bg-primary)]">Era_Current</option>
+                            <option className="bg-[var(--bg-primary)]">Historical_logs</option>
+                        </select>
+                    </div>
+                    <div className="h-[350px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={[
+                                { name: 'M01', views: 400, visitors: 240 },
+                                { name: 'M02', views: 300, visitors: 139 },
+                                { name: 'M03', views: 550, visitors: 380 },
+                                { name: 'M04', views: 470, visitors: 290 },
+                                { name: 'M05', views: 790, visitors: 480 },
+                                { name: 'M06', views: 920, visitors: 680 },
+                                { name: 'M07', views: 810, visitors: 590 },
+                            ]}>
+                                <defs>
+                                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                                <XAxis dataKey="name" stroke="var(--text-primary)" fontSize={10} tickLine={false} axisLine={false} dy={10} fontStyle="italic" fontWeight="900" />
+                                <YAxis stroke="var(--text-primary)" fontSize={10} tickLine={false} axisLine={false} dx={-10} fontStyle="italic" fontWeight="900" />
+                                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-glass)', border: '1px solid var(--border)', borderRadius: '20px', color: 'var(--text-primary)', fontSize: '12px', fontWeight: 'bold', backdropBlur: '10px' }}/>
+                                <Area type="monotone" dataKey="views" stroke="var(--accent)" strokeWidth={4} fillOpacity={1} fill="url(#colorViews)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
 
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                        <GlassCard className="col-span-1 lg:col-span-2 p-6">
-                                            <h3 className="text-lg font-bold text-coffee-900 dark:text-coffee-100 mb-6">Traffic Telemetry</h3>
-                                            <div className="h-[300px] w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={[
-                                                        { name: 'Mon', views: 400, visitors: 240 },
-                                                        { name: 'Tue', views: 300, visitors: 139 },
-                                                        { name: 'Wed', views: 550, visitors: 380 },
-                                                        { name: 'Thu', views: 470, visitors: 290 },
-                                                        { name: 'Fri', views: 790, visitors: 480 },
-                                                        { name: 'Sat', views: 920, visitors: 680 },
-                                                        { name: 'Sun', views: 810, visitors: 590 },
-                                                    ]} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="#8c7a6b" strokeOpacity={0.1} vertical={false} />
-                                                        <XAxis dataKey="name" stroke="#8c7a6b" fontSize={12} tickLine={false} axisLine={false} />
-                                                        <YAxis stroke="#8c7a6b" fontSize={12} tickLine={false} axisLine={false} />
-                                                        <Tooltip contentStyle={{ backgroundColor: 'rgba(12, 12, 12, 0.9)', borderRadius: '12px' }}/>
-                                                        <Line type="monotone" dataKey="views" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} />
-                                                        <Line type="monotone" dataKey="visitors" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </GlassCard>
-
-                                        <GlassCard className="col-span-1 p-6">
-                                            <h3 className="text-lg font-bold text-coffee-900 dark:text-coffee-100 mb-6">Engagement</h3>
-                                            <div className="h-[300px] w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <BarChart data={[
-                                                        { name: 'Projects', clicks: 850 },
-                                                        { name: 'Blogs', clicks: 1200 },
-                                                        { name: 'Resume', clicks: 350 },
-                                                        { name: 'Contact', clicks: 190 },
-                                                    ]} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="#8c7a6b" strokeOpacity={0.1} horizontal={true} vertical={false} />
-                                                        <XAxis type="number" hide />
-                                                        <YAxis dataKey="name" type="category" stroke="#8c7a6b" fontSize={12} tickLine={false} axisLine={false} width={70} />
-                                                        <Tooltip contentStyle={{ backgroundColor: 'rgba(12, 12, 12, 0.9)', borderRadius: '8px' }}/>
-                                                        <Bar dataKey="clicks" fill="#d97706" radius={[0, 4, 4, 0]} barSize={24} />
-                                                    </BarChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </GlassCard>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        <GlassCard className="p-8 border-t-4 border-t-blue-500 hover:-translate-y-1 transition-transform cursor-pointer" onClick={() => navigate('/admin/messages')}>
-                                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl inline-block mb-6">
-                                                <MessageSquare size={32} className="text-blue-600 dark:text-blue-400" />
-                                            </div>
-                                            <div className="text-2xl font-black text-coffee-900 dark:text-coffee-100 mb-2">Inbox & Contacts</div>
-                                            <p className="text-sm text-coffee-600 dark:text-coffee-400 font-medium">Read encrypted messages directly sent from your public frontend form.</p>
-                                        </GlassCard>
-
-                                        <GlassCard className="p-8 border-t-4 border-t-coffee-500 hover:-translate-y-1 transition-transform cursor-pointer" onClick={() => navigate('/admin/settings')}>
-                                            <div className="p-3 bg-coffee-100 dark:bg-coffee-900/30 rounded-xl inline-block mb-6">
-                                                <Settings size={32} className="text-coffee-600 dark:text-coffee-400" />
-                                            </div>
-                                            <div className="text-2xl font-black text-coffee-900 dark:text-coffee-100 mb-2">Global Settings</div>
-                                            <p className="text-sm text-coffee-600 dark:text-coffee-400 font-medium">Dynamically select Site Title, Meta, and the Homepage template logic.</p>
-                                        </GlassCard>
-                                    </div>
+                <div className="col-span-1 bg-[var(--bg-secondary)] backdrop-blur-2xl border border-[var(--border)] rounded-[40px] p-10 shadow-3xl flex flex-col">
+                    <div className="flex items-center gap-4 mb-10">
+                        <div className="p-3 bg-purple-500/10 text-purple-500 rounded-xl border border-purple-500/20"><Shield size={20}/></div>
+                        <h3 className="text-xl font-black text-[var(--text-primary)] italic tracking-tight uppercase">System_Load</h3>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center gap-10">
+                        {[
+                            { name: 'Neural Processing', value: 85, color: 'bg-[var(--accent)]', glow: 'shadow-[var(--accent-glow)]' },
+                            { name: 'Core Database', value: 62, color: 'bg-emerald-500', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.3)]' },
+                            { name: 'Visual Interface', value: 45, color: 'bg-blue-500', glow: 'shadow-[0_0_15px_rgba(59,130,246,0.3)]' },
+                            { name: 'Security Matrix', value: 95, color: 'bg-red-500', glow: 'shadow-[0_0_15px_rgba(239,68,68,0.3)]' }
+                        ].map(en => (
+                            <div key={en.name} className="flex flex-col gap-3">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest italic">
+                                    <span className="text-[var(--text-primary)] opacity-50">{en.name}</span>
+                                    <span className="text-[var(--text-primary)]">{en.value}%</span>
                                 </div>
-                            )}
+                                <div className="h-2.5 w-full bg-[var(--bg-primary)] rounded-full overflow-hidden border border-[var(--border)]">
+                                    <motion.div 
+                                        initial={{ width: 0 }}
+                                        whileInView={{ width: `${en.value}%` }} 
+                                        transition={{ duration: 1.5, ease: 'circOut' }}
+                                        className={`h-full ${en.color} ${en.glow} rounded-full`} 
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
 
+            {/* Quick Access Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {[
+                    { title: 'Secure Inbox', desc: 'Review Crypt Transmissions', id: 'messages', icon: MessageSquare, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                    { title: 'System Parameters', desc: 'Global Logic Control', id: 'settings', icon: Settings, color: 'text-[var(--text-secondary)]', bg: 'bg-[var(--bg-secondary)]' },
+                    { title: 'Asset Nexus', desc: 'Central Visual Library', id: 'media', icon: Database, color: 'text-[var(--accent)]', bg: 'bg-[var(--accent)]/10' },
+                    { title: 'Dev Stack', desc: 'Modular Tech Toolkit', id: 'skills', icon: Code2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' }
+                ].map((panel) => (
+                    <div 
+                        key={panel.id}
+                        onClick={() => navigate(`/admin/${panel.id}`)} 
+                        className="bg-[var(--bg-secondary)] backdrop-blur-xl border border-[var(--border)] rounded-[32px] p-6 shadow-xl hover:border-[var(--accent)]/30 transition-all cursor-pointer flex flex-col gap-6 group relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform"><panel.icon size={80} className="text-[var(--text-primary)]" /></div>
+                        <div className={`w-14 h-14 ${panel.bg} ${panel.color} rounded-2xl flex items-center justify-center border border-[var(--border)] shadow-inner group-hover:scale-110 transition-transform`}>
+                            <panel.icon size={28} />
+                        </div>
+                        <div>
+                            <h4 className="font-black text-[var(--text-primary)] text-lg italic tracking-tight uppercase">{panel.title}</h4>
+                            <p className="text-[9px] text-[var(--text-secondary)] opacity-50 uppercase tracking-[0.2em] font-black mt-1">{panel.desc}</p>
+                        </div>
+                        <div className="mt-auto flex justify-end"><ChevronRight size={18} className="text-[var(--text-secondary)] opacity-10 group-hover:text-[var(--accent)] group-hover:opacity-100 transition-all" /></div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden selection:bg-[var(--accent)]/30 font-sans">
+            <FluidBackground />
+            
+            <AdminSidebar 
+                activeTab={activeTab} 
+                navigate={navigate} 
+                logout={logout} 
+                isCollapsed={isCollapsed} 
+                setIsCollapsed={setIsCollapsed} 
+            />
+
+            <div className="flex-1 flex flex-col min-w-0 bg-transparent relative z-10 transition-all">
+                <AdminTopbar activeTab={activeTab} setIsFormOpen={setIsFormOpen} />
+
+                <main className="flex-1 overflow-y-auto p-8 md:p-14 scrollbar-hide">
+                    <AnimatePresence mode="wait">
+                        <motion.div 
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+                            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, y: -30, filter: 'blur(10px)' }}
+                            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                            className="max-w-[1600px] mx-auto"
+                        >
+                            {activeTab === 'overview' && renderOverview()}
                             {activeTab === 'messages' && renderInbox()}
                             {activeTab === 'media' && <MediaManager token={token} />}
+                            
                             {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'media' && isFormOpen && renderDynamicForm()}
-                            {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'media' && !isFormOpen && renderDataList()}
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
-            </main>
+                            {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'media' && !isFormOpen && (
+                                <div className="space-y-10">
+                                    <div className="flex justify-between items-center mb-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-4 bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--accent)] rounded-2xl shadow-[0_0_20px_rgba(var(--accent-rgb),0.1)]">
+                                                {cmsSchemas[activeTab]?.icon && React.createElement(cmsSchemas[activeTab].icon, { size: 24 })}
+                                            </div>
+                                            <div>
+                                                <h2 className="text-3xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase">{activeTab}_Segments</h2>
+                                                <p className="text-[10px] font-black tracking-[0.3em] text-[var(--text-secondary)] opacity-50 uppercase mt-1">Authorized_Data_Layer</p>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => setIsFormOpen(true)}
+                                            className="flex items-center gap-3 bg-[var(--accent)] text-black px-8 py-3.5 rounded-2xl font-black text-[10px] tracking-[0.2em] uppercase italic transition-all shadow-[0_0_30px_var(--accent-glow)] hover:scale-105 active:scale-95"
+                                        >
+                                            <Plus size={18} /> Initialize_New
+                                        </button>
+                                    </div>
+                                    {renderDataList()}
+                                </div>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
+                </main>
+            </div>
         </div>
     );
 };

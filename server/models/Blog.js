@@ -8,14 +8,16 @@ const BlogSchema = new mongoose.Schema({
     category: { type: String, required: true },
     tags: [{ type: String }],
     coverImage: { type: String },
-    themeTemplate: { 
-        type: String, 
-        enum: ['Minimal', 'Magazine', 'Split', 'Image-Heavy'], 
-        default: 'Minimal' 
-    },
+    
     author: { type: String, default: 'Sonu Prasad' },
-    readTime: { type: Number },
-    isPublished: { type: Boolean, default: false },
+    readTime: { type: Number, default: 5 },
+    
+    status: { 
+        type: String, 
+        enum: ['published', 'draft'], 
+        default: 'published' 
+    },
+    
     views: { type: Number, default: 0 }
 }, { timestamps: true });
 

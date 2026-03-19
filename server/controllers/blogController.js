@@ -3,7 +3,11 @@ const crudFactory = require('./crudFactory');
 
 exports.getRelatedBlogs = async (req, res, next) => {
     try {
-        const blog = await Blog.findById(req.params.id);
+        const { id } = req.params;
+        const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
+        const blog = isMongoId 
+            ? await Blog.findById(id) 
+            : await Blog.findOne({ slug: id });
         if (!blog) return res.status(404).json({ message: 'Blog not found' });
 
         const related = await Blog.find({

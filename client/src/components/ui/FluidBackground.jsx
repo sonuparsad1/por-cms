@@ -1,43 +1,42 @@
 import React from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const FluidBackground = () => {
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
+    const { scrollYProgress } = useScroll();
 
-    const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-    const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
-
-    const handleMouseMove = (e) => {
-        mouseX.set(e.clientX);
-        mouseY.set(e.clientY);
-    };
+    // Parallax scrolling mapped to scroll depth
+    const blob1Y = useTransform(scrollYProgress, [0, 1], ["[-20%]", "[-60%]"]);
+    const blob2Y = useTransform(scrollYProgress, [0, 1], ["[-10%]", "[30%]"]);
 
     return (
-        <div 
-            onMouseMove={handleMouseMove}
-            className="fixed inset-0 z-0 overflow-hidden pointer-events-none"
-        >
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none perspective-[1000px]">
             <div className="absolute inset-0 bg-[var(--bg-primary)] transition-colors duration-700" />
             
-            {/* Animated Blobs */}
+            {/* Parallax Blobs anchored in 3D Space */}
             <motion.div 
-                style={{ x: springX, y: springY }}
-                className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[var(--accent)] opacity-[0.08] blur-[120px]"
+                style={{ top: blob1Y, scale: 1.1 }}
+                className="absolute left-[-20%] w-[60%] h-[60%] rounded-full bg-[var(--accent)] opacity-[0.08] blur-[120px] will-change-transform"
             />
             
             <motion.div 
+                style={{ bottom: blob2Y }}
                 animate={{ 
                     x: [0, 100, 0],
-                    y: [0, 150, 0],
+                    rotate: [0, 90, 0]
                 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--accent)] opacity-[0.05] blur-[100px]"
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                className="absolute right-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--accent)] opacity-[0.05] blur-[100px] will-change-transform"
             />
 
-            {/* Matrix/Particle Mesh Overlay */}
-            <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
-                 style={{ backgroundImage: 'radial-gradient(var(--text-secondary) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+            {/* Deep Matrix Overlay */}
+            <div 
+                className="absolute inset-[-50%] opacity-[0.03] dark:opacity-[0.05]" 
+                style={{ 
+                    backgroundImage: 'radial-gradient(var(--text-secondary) 1px, transparent 0)', 
+                    backgroundSize: '80px 80px',
+                    transform: 'translateZ(-500px) scale(2)'
+                }} 
+            />
         </div>
     );
 };

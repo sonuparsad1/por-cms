@@ -11,9 +11,11 @@ const LearningProgress = require('../../models/LearningProgress');
 
 // Helper to register generic routes
 const register = (path, Model) => {
+    const postMiddleware = path === 'testimonials' ? [] : [auth];
+    
     router.route(`/${path}`)
         .get(crudFactory.getAll(Model))
-        .post(auth, crudFactory.createOne(Model));
+        .post(...postMiddleware, crudFactory.createOne(Model));
     
     router.route(`/${path}/:id`)
         .get(crudFactory.getOne(Model))

@@ -56,7 +56,18 @@ exports.getAll = (Model) => async (req, res, next) => {
 
 exports.getOne = (Model) => async (req, res, next) => {
     try {
-        const doc = await Model.findById(req.params.id);
+        const { id } = req.params;
+        const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
+        
+        let doc;
+        if (isMongoId) {
+            doc = await Model.findById(id);
+        }
+        // If not found by ID (or not a valid ID), try slug
+        if (!doc) {
+            doc = await Model.findOne({ slug: id });
+        }
+        
         if (!doc) return res.status(404).json({ message: 'Document not found' });
         res.status(200).json({
             status: 'success',

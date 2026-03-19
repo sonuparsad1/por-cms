@@ -5,6 +5,10 @@ const projectRoutes = require('./projectRoutes');
 const blogRoutes = require('./blogRoutes');
 const messageRoutes = require('./messageRoutes');
 const otherRoutes = require('./otherRoutes');
+const experienceRoutes = require('../experienceRoutes');
+const educationRoutes = require('../educationRoutes');
+const skillCategoryRoutes = require('../skillCategoryRoutes');
+const galleryRoutes = require('../galleryRoutes');
 
 const Project = require('../../models/Project');
 const Blog = require('../../models/Blog');
@@ -17,6 +21,10 @@ const crudFactory = require('../../controllers/crudFactory');
 router.use('/projects', projectRoutes);
 router.use('/blogs', blogRoutes);
 router.use('/messages', messageRoutes);
+router.use('/experience', experienceRoutes);
+router.use('/education', educationRoutes);
+router.use('/skills', skillCategoryRoutes);
+router.use('/gallery', galleryRoutes);
 router.use('/', otherRoutes);
 
 // Stats & Settings (keeping these in index for now as they are specialized)

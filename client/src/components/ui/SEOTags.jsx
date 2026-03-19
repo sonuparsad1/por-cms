@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
-import { SettingsContext } from '../../context/SettingsContext';
+import { SettingsContext } from '../../contexts/SettingsContext';
 
 const SEOTags = ({ pageTitle, pageDescription, pageImage }) => {
     const { settings } = useContext(SettingsContext);

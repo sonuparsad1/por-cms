@@ -17,11 +17,15 @@ const generateRoutes = (path, Model) => {
     if (path !== 'messages') {
         router.get(`/${path}`, crudFactory.getAll(Model));
         router.get(`/${path}/:id`, crudFactory.getOne(Model));
-        router.post(`/${path}`, auth, crudFactory.createOne(Model));
     } else {
-        router.post(`/${path}`, crudFactory.createOne(Model));
         router.get(`/${path}`, auth, crudFactory.getAll(Model));
         router.get(`/${path}/:id`, auth, crudFactory.getOne(Model));
+    }
+
+    if (path === 'messages' || path === 'testimonials') {
+        router.post(`/${path}`, crudFactory.createOne(Model));
+    } else {
+        router.post(`/${path}`, auth, crudFactory.createOne(Model));
     }
     
     router.put(`/${path}/:id`, auth, crudFactory.updateOne(Model));

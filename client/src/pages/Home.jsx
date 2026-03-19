@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { SettingsContext } from '../context/SettingsContext';
+import { SettingsContext } from '../contexts/SettingsContext';
 
 // Import all Dynamic Templates
 import CenteredHero from '../components/templates/home/CenteredHero';

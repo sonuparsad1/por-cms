@@ -7,7 +7,10 @@ const TestimonialSchema = new mongoose.Schema({
     quote: { type: String, required: true },
     rating: { type: Number, min: 1, max: 5 },
     avatar: { type: String },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     isActive: { type: Boolean, default: true }
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Testimonial', TestimonialSchema);
