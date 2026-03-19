@@ -15,26 +15,34 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-const { MongoMemoryServer } = require('mongodb-memory-server');
-
 // Database Connection
 const connectDB = async () => {
+    if (!process.env.MONGODB_URI && process.env.NODE_ENV === 'production') {
+        console.error('❌ FATAL: MONGODB_URI is not defined in Production Environment.');
+        return;
+    }
+
     try {
         await mongoose.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
-            serverSelectionTimeoutMS: 3000
+            serverSelectionTimeoutMS: 15000 // Increased for cloud cold-starts
         });
-        console.log('✅ MongoDB connected successfully');
+        console.log('✅ MongoDB_Connection: Established_Successfully');
     } catch (err) {
-        console.log('\n⚠️  Local MongoDB Connection Failed: Spawning an In-Memory Database for development...');
-        const mongoServer = await MongoMemoryServer.create();
-        const mongoUri = mongoServer.getUri();
-        await mongoose.connect(mongoUri, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        console.log('✅ In-Memory MongoDB running successfully. You can now test the Admin features locally! \n');
+        if (process.env.NODE_ENV !== 'production') {
+            const { MongoMemoryServer } = require('mongodb-memory-server');
+            console.log('\n⚠️  Local MongoDB Connection Failed: Spawning an In-Memory Database for development...');
+            const mongoServer = await MongoMemoryServer.create();
+            const mongoUri = mongoServer.getUri();
+            await mongoose.connect(mongoUri, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+            });
+            console.log('✅ In-Memory MongoDB running successfully. You can now test the Admin features locally! \n');
+        } else {
+            console.error('❌ PRODUCTION_ERROR: MongoDB Connection Logic Failed.', err.message);
+        }
     }
 };
 connectDB();
