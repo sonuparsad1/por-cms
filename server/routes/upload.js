@@ -5,10 +5,17 @@ const path = require('path');
 const fs = require('fs');
 const auth = require('../middleware/authMiddleware');
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+// Ensure upload directory exists (Only in local development)
+let uploadDir;
+if (process.env.NODE_ENV !== 'production') {
+    uploadDir = path.join(__dirname, '../public/uploads');
+    if (!fs.existsSync(uploadDir)) {
+        try {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        } catch (e) {
+            console.error('Failed to create local upload directory', e.message);
+        }
+    }
 }
 
 const cloudinary = require('cloudinary').v2;
@@ -42,19 +49,24 @@ if (useCloudinary) {
             transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
         }
     });
-    console.log('Using Cloudinary for image uploads');
+    console.log('✅ Storage_Protocol: Cloudinary_Active');
 } else {
-    // Configure Multer Disk Storage Engine (Fallback)
-    storage = multer.diskStorage({
-        destination: function(req, file, cb) {
-            cb(null, uploadDir);
-        },
-        filename: function(req, file, cb) {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-            cb(null, uniqueSuffix + path.extname(file.originalname));
-        }
-    });
-    console.log('Cloudinary credentials missing. Falling back to Local Storage.');
+    // Determine if we should allow local fallback (Only for non-production)
+    if (process.env.NODE_ENV === 'production') {
+        console.error('❌ FATAL_FILE_STATION: Local storage restricted in Production. Cloudinary mandatory.');
+        storage = multer.memoryStorage(); // Fail-safe (no FS touch)
+    } else {
+        storage = multer.diskStorage({
+            destination: function(req, file, cb) {
+                cb(null, uploadDir);
+            },
+            filename: function(req, file, cb) {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                cb(null, uniqueSuffix + path.extname(file.originalname));
+            }
+        });
+        console.log('⚠️  Storage_Protocol: Local_Fallback_Active');
+    }
 }
 
 // Implement file validation and upload middlewear
