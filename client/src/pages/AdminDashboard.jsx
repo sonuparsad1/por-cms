@@ -189,7 +189,7 @@ const AdminDashboard = () => {
     const activeTab = validTabs.includes(tab) ? tab : 'overview';
     
     const [collectionData, setCollectionData] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [inboxSearch, setInboxSearch] = useState('');
@@ -197,14 +197,54 @@ const AdminDashboard = () => {
     const [formData, setFormData] = useState({});
     const [inboxFilter, setInboxFilter] = useState('all');
     const [reviewFilter, setReviewFilter] = useState('all');
+    const [securityData, setSecurityData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const [securityStatus, setSecurityStatus] = useState({ type: '', message: '' });
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     useEffect(() => {
+        if (activeTab === 'security') {
+            setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            setSecurityStatus({ type: '', message: '' });
+        }
         fetchCollectionData();
         setIsFormOpen(false);
         setEditingId(null);
         setFormData({});
     }, [activeTab]);
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        setSecurityStatus({ type: 'info', message: 'Rotating_Entropy_Shield...' });
+        
+        if (securityData.newPassword !== securityData.confirmPassword) {
+            setSecurityStatus({ type: 'error', message: 'Mismatched_Master_Key' });
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    currentPassword: securityData.currentPassword,
+                    newPassword: securityData.newPassword
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                setSecurityStatus({ type: 'success', message: 'Entropy_Shift_Complete' });
+                setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                setSecurityStatus({ type: 'error', message: data.message || 'Transmission_Failed' });
+            }
+        } catch (err) {
+            setSecurityStatus({ type: 'error', message: 'Kernel_Security_Break' });
+        }
+    };
 
     useEffect(() => {
         fetchCounts();
@@ -566,6 +606,97 @@ const AdminDashboard = () => {
                     </div>
                 </form>
             </motion.div>
+        );
+    };
+
+    const renderSecuritySettings = () => {
+        return (
+            <div className="max-w-4xl mx-auto py-12">
+                <div className="bg-[var(--bg-glass)] border border-[var(--border)] rounded-[48px] p-12 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/[0.03] to-transparent pointer-events-none" />
+                    <ShieldCheck size={300} className="absolute -top-20 -right-20 text-[var(--accent)]/[0.02] pointer-events-none" />
+
+                    <div className="relative z-10 mb-16">
+                        <h3 className="text-4xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase mb-4">Security_Core</h3>
+                        <p className="text-[10px] font-black tracking-[0.4em] text-[var(--text-secondary)] opacity-40 uppercase italic">Credential_Rotation_Nexus // Orbit_01</p>
+                    </div>
+
+                    <form onSubmit={handlePasswordChange} className="space-y-12 relative z-10">
+                        {securityStatus.message && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className={`p-6 rounded-2xl border flex items-center gap-4 text-xs font-black uppercase tracking-widest italic ${securityStatus.type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-500' : securityStatus.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)]'}`}
+                            >
+                                <Zap size={18} /> {securityStatus.message}
+                            </motion.div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-50 flex items-center gap-2">
+                                    <Activity size={12} className="text-[var(--accent)]" /> 
+                                    Current_User_Hash
+                                </label>
+                                <input 
+                                    type="password"
+                                    required
+                                    value={securityData.currentPassword}
+                                    onChange={(e) => setSecurityData(prev => ({...prev, currentPassword: e.target.value}))}
+                                    className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-6 py-4 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] transition-all text-sm font-black italic text-[var(--text-primary)]"
+                                    placeholder="••••••••••••"
+                                />
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-50 flex items-center gap-2">
+                                    <Radio size={12} className="text-[var(--accent)]" /> 
+                                    New_Entropy_Shift
+                                </label>
+                                <input 
+                                    type="password"
+                                    required
+                                    value={securityData.newPassword}
+                                    onChange={(e) => setSecurityData(prev => ({...prev, newPassword: e.target.value}))}
+                                    className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-6 py-4 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] transition-all text-sm font-black italic text-[var(--text-primary)]"
+                                    placeholder="••••••••••••"
+                                />
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] opacity-50 flex items-center gap-2">
+                                    <CheckCircle size={12} className="text-[var(--accent)]" /> 
+                                    Confirm_Master_Key
+                                </label>
+                                <input 
+                                    type="password"
+                                    required
+                                    value={securityData.confirmPassword}
+                                    onChange={(e) => setSecurityData(prev => ({...prev, confirmPassword: e.target.value}))}
+                                    className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-6 py-4 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--bg-glass)] transition-all text-sm font-black italic text-[var(--text-primary)]"
+                                    placeholder="••••••••••••"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="pt-10 flex justify-end">
+                            <PremiumButton type="submit" label="Invoke_Entropy_Shift" icon={Zap} />
+                        </div>
+                    </form>
+
+                    <div className="mt-20 p-8 bg-[var(--accent)]/5 border border-[var(--accent)]/10 rounded-3xl">
+                        <div className="flex gap-6 items-start">
+                            <div className="w-12 h-12 rounded-xl bg-[var(--bg-primary)] border border-[var(--accent)]/30 flex items-center justify-center text-[var(--accent)] shrink-0 shadow-lg shadow-[var(--accent-glow)]"><Shield size={22}/></div>
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-[var(--text-primary)]">Security_Advisor_Protocol</h4>
+                                <p className="text-[10px] font-medium leading-relaxed italic text-[var(--text-secondary)] opacity-60">
+                                    Ensure your master key contains at least 12 symbols of high complexity (Mix of uppercase, numerals, and special chars). Avoid recycling keys from previously breached archives. Your safety depends on entropy.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         );
     };
 
@@ -967,10 +1098,10 @@ const AdminDashboard = () => {
                         >
                             {activeTab === 'overview' && renderOverview()}
                             {activeTab === 'messages' && renderInbox()}
-                            {activeTab === 'media' && <MediaManager token={token} />}
-                            
-                            {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'media' && isFormOpen && renderDynamicForm()}
-                            {activeTab !== 'overview' && activeTab !== 'messages' && activeTab !== 'media' && !isFormOpen && (
+                            {activeTab === 'media' && <MediaManager adminToken={token} />}
+                            {activeTab === 'security' && renderSecuritySettings()}
+                            {!['overview', 'messages', 'media', 'security'].includes(activeTab) && isFormOpen && renderDynamicForm()}
+                            {!['overview', 'messages', 'media', 'security'].includes(activeTab) && !isFormOpen && (
                                 <div className="space-y-10">
                                     <div className="flex justify-between items-center mb-10">
                                         <div className="flex items-center gap-4">

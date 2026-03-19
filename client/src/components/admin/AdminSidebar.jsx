@@ -51,7 +51,8 @@ const AdminSidebar = ({ activeTab, navigate, logout, isCollapsed, setIsCollapsed
                 { id: 'media', label: 'Global Assets', icon: Database },
                 { id: 'messages', label: 'Secure Inbox', icon: MessageSquare },
                 { id: 'faqs', label: 'Documentation', icon: HelpCircle },
-                { id: 'settings', label: 'Parameters', icon: Settings }
+                { id: 'settings', label: 'Parameters', icon: Settings },
+                { id: 'security', label: 'Security Core', icon: ShieldCheck }
             ]
         }
     ];
