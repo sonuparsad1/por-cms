@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Default (Light) - White Minimal */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-glass: rgba(255, 255, 255, 0.7);
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --accent: #3b82f6;
+    --border: rgba(0, 0, 0, 0.1);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .dark {
+    /* Dark - Black Premium */
+    --bg-primary: #050505;
+    --bg-secondary: #0c0c0c;
+    --bg-glass: rgba(12, 12, 12, 0.7);
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --accent: #60a5fa;
+    --border: rgba(255, 255, 255, 0.1);
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  }
+
+  .luxury {
+    /* Luxury - Brown Style */
+    --bg-primary: #fdfaf6;
+    --bg-secondary: #f4ece1;
+    --bg-glass: rgba(253, 250, 246, 0.7);
+    --text-primary: #433422;
+    --text-secondary: #8c7a6b;
+    --accent: #d97706; /* Gold/Bronze */
+    --border: rgba(67, 52, 34, 0.15);
+    --shadow: 0 4px 20px -2px rgba(67, 52, 34, 0.2);
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px var(--accent);
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
