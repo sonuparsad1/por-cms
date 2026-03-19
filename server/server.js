@@ -62,7 +62,11 @@ app.get('/', (req, res) => {
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Vercel Serverless Export Architecture
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`[DEV RUNTIME] Protocol_Active // Port_${PORT}`);
+    });
+}
+
+module.exports = app;
