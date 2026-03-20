@@ -51,13 +51,13 @@ const skillCategories = [
 
 const Skills = () => {
     return (
-        <div className="min-h-screen py-32 px-6 relative overflow-hidden bg-transparent selection:bg-[var(--accent)]/30">
+        <div className="min-h-screen py-32 px-6 relative overflow-hidden bg-[var(--bg-primary)] selection:bg-[var(--accent)]/30 w-full">
             <FluidBackground />
             
             {/* Background Tactical Grid */}
             <div className="fixed inset-0 pointer-events-none opacity-[0.05]">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--accent)_1px,transparent_1px),linear-gradient(to_bottom,var(--accent)_1px,transparent_1px)] bg-[size:64px_64px]" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_90%)]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)]" />
             </div>
 
             <div className="max-w-7xl mx-auto relative z-10 space-y-40">
@@ -68,10 +68,10 @@ const Skills = () => {
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 1, ease: "backOut" }}
-                        className="inline-flex items-center gap-4 px-8 py-3 bg-black border border-[var(--accent)]/50 rounded-full mb-12 shadow-[0_0_30px_var(--accent-glow)] group cursor-default"
+                        className="inline-flex items-center gap-4 px-8 py-3 bg-[var(--bg-secondary)] border border-[var(--accent)]/50 rounded-full mb-12 shadow-[0_0_30px_var(--accent-glow)] group cursor-default"
                     >
                         <Terminal size={20} className="text-[var(--accent)] group-hover:rotate-12 transition-transform" />
-                        <span className="text-xs font-black uppercase tracking-[0.5em] text-white">System_Core_Abilities_v2.0</span>
+                        <span className="text-xs font-black uppercase tracking-[0.5em] text-[var(--text-primary)]">System_Core_Abilities_v2.0</span>
                     </motion.div>
 
                     <h1 className="text-7xl md:text-[12rem] font-black text-[var(--text-primary)] leading-none tracking-tighter mb-10">
@@ -112,10 +112,10 @@ const Skills = () => {
                                 whileInView={{ opacity: 1, x: 0 }}
                                 whileHover={{ scale: 1.05, borderColor: 'var(--accent)' }}
                                 transition={{ delay: i * 0.1 }}
-                                className="px-10 py-6 bg-black/80 border-2 border-white/5 rounded-[32px] flex items-center gap-4 group cursor-pointer shadow-2xl transition-all"
+                                className="px-10 py-6 bg-[var(--bg-glass)] border-2 border-[var(--border)] rounded-[32px] flex items-center gap-4 group cursor-pointer shadow-2xl transition-all"
                             >
                                 <div className="w-3 h-3 rounded-full bg-[var(--accent)] animate-ping" />
-                                <span className="text-lg font-black text-white tracking-wider uppercase">{skill}</span>
+                                <span className="text-lg font-black text-[var(--text-primary)] tracking-wider uppercase">{skill}</span>
                             </motion.div>
                         ))}
                     </div>
@@ -127,13 +127,13 @@ const Skills = () => {
                     whileInView={{ opacity: 1 }}
                     className="max-w-5xl mx-auto pt-20"
                 >
-                    <div className="bg-[#0a0a0a] border border-white/10 rounded-[60px] p-20 text-center relative overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.8)]">
+                    <div className="bg-[var(--bg-glass)] border border-[var(--border)] rounded-[60px] p-20 text-center relative overflow-hidden group shadow-2xl">
                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent" />
                          
-                         <h3 className="text-3xl md:text-5xl font-black text-white mb-10 tracking-tighter uppercase leading-none">
+                         <h3 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] mb-10 tracking-tighter uppercase leading-none">
                             Career <span className="text-[var(--accent)]">Protocol_01</span>
                          </h3>
-                         <p className="text-xl md:text-3xl font-bold text-white/50 leading-relaxed italic max-w-4xl mx-auto">
+                         <p className="text-xl md:text-3xl font-bold text-[var(--text-secondary)] leading-relaxed italic max-w-4xl mx-auto">
                             "To architect high-density intelligent systems where computational rigor meets visceral human experience. Committed to S-Tier excellence in AI/ML stack synchronization."
                          </p>
                     </div>
@@ -153,20 +153,20 @@ const SkillModule = ({ category, index }) => {
             transition={{ duration: 0.8, delay: index * 0.1 }}
             className="group"
         >
-            <div className="bg-[#0a0a0a] border-4 border-white/5 rounded-[48px] p-12 lg:p-16 h-full flex flex-col transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)] relative overflow-hidden shadow-2xl">
+            <div className="bg-[var(--bg-glass)] border-4 border-[var(--border)] rounded-[48px] p-12 lg:p-16 h-full flex flex-col transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-2xl relative overflow-hidden shadow-xl backdrop-blur-xl">
                 
                 {/* Module ID Tag */}
-                <div className="absolute top-8 right-12 font-mono text-[10px] font-black tracking-[0.4em] opacity-20 uppercase">
+                <div className="absolute top-8 right-12 font-mono text-[10px] font-black tracking-[0.4em] opacity-20 uppercase text-[var(--text-secondary)]">
                     MOD_00{index + 1}_LOGIC
                 </div>
 
                 {/* Header Section */}
                 <div className="flex items-center gap-8 mb-16">
-                    <div className="w-20 h-20 rounded-[28px] bg-white/5 border-2 border-white/10 flex items-center justify-center text-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-black transition-all duration-700 shadow-xl group-hover:shadow-[0_0_40px_var(--accent-glow)]">
+                    <div className="w-20 h-20 rounded-[28px] bg-[var(--bg-secondary)] border-2 border-[var(--border)] flex items-center justify-center text-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-black transition-all duration-700 shadow-xl group-hover:shadow-[0_0_40px_var(--accent-glow)]">
                         {React.cloneElement(category.icon, { size: 40 })}
                     </div>
                     <div>
-                        <h2 className="text-4xl font-black text-white tracking-tighter uppercase mb-2">
+                        <h2 className="text-4xl font-black text-[var(--text-primary)] tracking-tighter uppercase mb-2">
                             {category.title}
                         </h2>
                         <div className="flex gap-2">
@@ -180,7 +180,7 @@ const SkillModule = ({ category, index }) => {
                     {category.skills.map((skill, i) => (
                         <div key={i} className="space-y-6">
                             <div className="flex justify-between items-end px-2">
-                                <span className="text-lg font-black text-white/80 tracking-widest uppercase">
+                                <span className="text-lg font-black text-[var(--text-primary)] opacity-80 tracking-widest uppercase">
                                     {skill.name}
                                 </span>
                                 <span className="text-sm font-mono font-black text-[var(--accent)]">
@@ -193,13 +193,13 @@ const SkillModule = ({ category, index }) => {
                                 {[...Array(20)].map((_, step) => (
                                     <motion.div
                                         key={step}
-                                        initial={{ opacity: 0.1 }}
+                                        initial={{ opacity: 0.1, backgroundColor: 'var(--border)' }}
                                         whileInView={{ 
                                             opacity: step * 5 < skill.level ? 1 : 0.1,
-                                            backgroundColor: step * 5 < skill.level ? 'var(--accent)' : 'rgba(255,255,255,0.05)'
+                                            backgroundColor: step * 5 < skill.level ? 'var(--accent)' : 'var(--border)'
                                         }}
                                         transition={{ delay: 0.5 + (step * 0.05) }}
-                                        className={`flex-1 rounded-sm shadow-[0_0_10px_rgba(0,0,0,0.5)]`}
+                                        className={`flex-1 rounded-sm shadow-inner`}
                                         style={{ 
                                             boxShadow: step * 5 < skill.level ? '0 0 10px var(--accent-glow)' : 'none'
                                         }}
@@ -211,10 +211,10 @@ const SkillModule = ({ category, index }) => {
                 </div>
 
                 {/* Operational Status */}
-                <div className="mt-16 flex items-center justify-between border-t border-white/10 pt-10">
+                <div className="mt-16 flex items-center justify-between border-t border-[var(--border)] pt-10">
                      <span className="text-[10px] font-black tracking-widest text-[var(--accent)] italic">OPERATIONAL_STABLE</span>
                      <div className="flex rotate-45 gap-1">
-                         <div className="w-1.5 h-1.5 bg-white/40" />
+                         <div className="w-1.5 h-1.5 bg-[var(--text-secondary)] opacity-20" />
                          <div className="w-1.5 h-1.5 bg-[var(--accent)] animate-pulse" />
                      </div>
                 </div>
