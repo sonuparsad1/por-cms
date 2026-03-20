@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { SettingsContext } from '../contexts/SettingsContext';
+import { SettingsContext } from '../../contexts/SettingsContext';
 
 const VisualThemeInjector = () => {
     const { settings } = useContext(SettingsContext);
