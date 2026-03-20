@@ -12,20 +12,6 @@ const VisualThemeInjector = () => {
         // Colors
         if (settings.primaryColor) {
             root.style.setProperty('--bg-primary', settings.primaryColor);
-            
-            // Derive RGB for Glass & Border
-            const hex = settings.primaryColor.replace('#', '');
-            const r = parseInt(hex.substring(0, 2), 16);
-            const g = parseInt(hex.substring(2, 4), 16);
-            const b = parseInt(hex.substring(4, 6), 16);
-            
-            // 85% opacity glass matching the primary background
-            root.style.setProperty('--bg-glass', `rgba(${r}, ${g}, ${b}, 0.85)`);
-            
-            // Subtle 15% opacity border (light or dark depending on brightness)
-            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-            const borderColor = brightness > 125 ? '0, 0, 0' : '255, 255, 255';
-            root.style.setProperty('--border', `rgba(${borderColor}, 0.1)`);
         }
         
         if (settings.accentColor) {
