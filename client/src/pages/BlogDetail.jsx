@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Clock, Calendar, User, Share2, Bookmark, Monitor, Terminal, BookOpen, ChevronRight, Hash } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, User, Share2, Bookmark, Monitor, Terminal, BookOpen, ChevronRight, Hash, Zap } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import SEOTags from '../components/ui/SEOTags';
 
@@ -65,6 +65,7 @@ const BlogDetail = () => {
 
     return (
         <article className="min-h-screen bg-[var(--bg-primary)] selection:bg-[var(--accent)]/30 pb-40 relative">
+            <div className="fixed inset-0 bg-[var(--bg-primary)] -z-10" />
             <SEOTags 
                 pageTitle={blog.title} 
                 pageDescription={blog.summary || blog.shortDescription}

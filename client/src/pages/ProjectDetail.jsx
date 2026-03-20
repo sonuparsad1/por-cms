@@ -50,7 +50,8 @@ const ProjectDetail = () => {
     const isCustom = project.contentMode === 'custom';
 
     return (
-        <article className="min-h-screen bg-[var(--bg-primary)] selection:bg-[var(--accent)]/30">
+        <article className="min-h-screen bg-[var(--bg-primary)] selection:bg-[var(--accent)]/30 relative">
+            <div className="fixed inset-0 bg-[var(--bg-primary)] -z-10" />
             <SEOTags 
                 pageTitle={project.title} 
                 pageDescription={project.shortDescription}
