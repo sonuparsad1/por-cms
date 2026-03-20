@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import GlassCard from '../components/ui/GlassCard';
-import { Database, FolderGit2, MessageSquare, LogOut, Plus, Trash2, Edit, FileText, Award, Star, Settings, ShieldCheck, HelpCircle, Image as ImageIcon, Search, TrendingUp, Users, ChevronRight, CheckCircle, XCircle, Clock, History, GraduationCap, Code2, Zap, Cpu, Activity, Shield, Globe, Radio } from 'lucide-react';
+import { Database, FolderGit2, MessageSquare, LogOut, Plus, Trash2, Edit, FileText, Award, Star, Settings, ShieldCheck, HelpCircle, Image as ImageIcon, Search, TrendingUp, Users, ChevronRight, CheckCircle, XCircle, Clock, History, GraduationCap, Code2, Zap, Cpu, Activity, Shield, Globe, Radio, Download, Monitor, Layout, Layers, Eye } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
 import { ThemeContext } from '../contexts/ThemeContext';
 import PremiumButton from '../components/ui/PremiumButton';
@@ -198,6 +198,7 @@ const AdminDashboard = () => {
     ];
     const activeTab = validTabs.includes(tab) ? tab : 'overview';
     
+    const [collectionData, setCollectionData] = useState([]);
     const [counts, setCounts] = useState(null);
     const [analyticsData, setAnalyticsData] = useState({ charts: { dailyViews: [] }, topPages: [] });
     const [loading, setLoading] = useState(true);
@@ -256,22 +257,23 @@ const AdminDashboard = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchAnalytics = async () => {
-            try {
-                const res = await fetch('/api/analytics/summary', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setCounts(data.counts);
-                    setAnalyticsData({ charts: data.charts, topPages: data.topPages });
-                }
-            } catch (err) {
-                console.error('Failed to fetch analytics:', err);
+    const fetchCounts = async () => {
+        try {
+            const res = await fetch('/api/analytics/summary', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setCounts(data.counts);
+                setAnalyticsData({ charts: data.charts, topPages: data.topPages });
             }
-        };
-        if (token) fetchAnalytics();
+        } catch (err) {
+            console.error('Failed to fetch analytics:', err);
+        }
+    };
+
+    useEffect(() => {
+        if (token) fetchCounts();
     }, [token]);
 
     const fetchCollectionData = async () => {
