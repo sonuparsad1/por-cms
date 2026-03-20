@@ -103,6 +103,9 @@ router.post('/bulk', auth, upload.array('images', 10), (req, res) => {
 // List all uploaded files (Admin only)
 router.get('/list', auth, (req, res) => {
     try {
+        if (process.env.NODE_ENV === 'production') {
+            return res.status(200).json({ data: [], message: 'Cloud_Storage_Active (Listing Restricted on Serverless)' });
+        }
         fs.readdir(uploadDir, (err, files) => {
             if (err) return res.status(500).json({ message: 'Unable to scan files' });
             const fileList = files.map(file => ({
@@ -120,6 +123,9 @@ router.get('/list', auth, (req, res) => {
 
 // Delete file (Admin only)
 router.delete('/:filename', auth, (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ message: 'Direct_Erased_Restricted: Use Cloudinary Dashboard' });
+    }
     const filePath = path.join(uploadDir, req.params.filename);
     if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
