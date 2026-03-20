@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "buildCommand": "cd client && npm install && npm run build",
+  "outputDirectory": "client/dist",
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
@@ -11,12 +19,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/client/dist/$1",
-      "check": true
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/dist/index.html"
+      "dest": "/$1"
     }
   ]
 }
