@@ -61,7 +61,8 @@ const Projects = () => {
     };
 
     return (
-        <div className="w-full min-h-screen bg-[var(--bg-primary)] py-20 px-6">
+        <div className="w-full min-h-screen py-20 px-6 relative">
+            <div className="fixed inset-0 bg-[var(--bg-primary)] -z-10" />
             <SEOTags />
             <div className="max-w-7xl mx-auto">
                 <header className="mb-20 text-center">

@@ -44,7 +44,8 @@ const Blog = () => {
     if (loading) return <div className="min-h-screen flex justify-center items-center bg-[var(--bg-primary)]"><div className="animate-pulse h-12 w-12 bg-[var(--accent)]/20 rounded-2xl border border-[var(--accent)]/40 flex items-center justify-center text-[var(--accent)] shadow-[0_0_30px_var(--accent-glow)]"><Terminal size={24}/></div></div>;
 
     return (
-        <div className="min-h-screen pt-24 pb-40 bg-[var(--bg-primary)] relative overflow-hidden">
+        <div className="min-h-screen pt-24 pb-40 relative">
+            <div className="fixed inset-0 bg-[var(--bg-primary)] -z-10" />
             <SEOTags pageTitle="Blog Archives" pageDescription="Strategic field notes and technical archives from Sonu Prasad." />
 
             {/* Tactical Branding Decoration */}
