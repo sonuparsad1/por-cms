@@ -40,8 +40,10 @@ export const AuthProvider = ({ children }) => {
                 return { success: false, message: data.message || 'Login failed' };
             }
         } catch (err) {
-            console.error('Login Error:', err);
-            return { success: false, message: 'Server connection error' };
+            console.error('Detailed_Login_Fault:', err.message);
+            // Distinguish between network errors and potential parsing errors from non-JSON 5xx pages
+            const alertMsg = err instanceof SyntaxError ? 'System_Malfunction: Protocol_Mismatch (502/504 Response)' : `Connection_Breach: ${err.message}`;
+            return { success: false, message: alertMsg };
         }
     };
 
