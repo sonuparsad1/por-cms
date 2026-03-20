@@ -870,14 +870,19 @@ const handleFormSubmit = async (e) => {
     const renderDataList = () => {
         if (loading) return <div className="flex justify-center mt-32"><div className="w-12 h-12 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin shadow-[0_0_20px_var(--accent-glow)]"></div></div>;
         if (activeTab === 'testimonials') return renderReviewList();
-            <div className="py-32 text-center border border-[var(--border)] rounded-[50px] mt-10 bg-[var(--bg-secondary)] shadow-2xl backdrop-blur-xl">
-                <div className="w-20 h-20 bg-[var(--bg-primary)] border border-[var(--border)] rounded-3xl flex items-center justify-center mx-auto mb-6 text-[var(--text-secondary)] opacity-10 group-hover:text-[var(--accent)] transition-all">
-                    <Database size={36} />
+        
+        if (!collectionData || collectionData.length === 0) {
+            return (
+                <div className="py-32 text-center border border-[var(--border)] rounded-[50px] mt-10 bg-[var(--bg-secondary)] shadow-2xl backdrop-blur-xl group">
+                    <div className="w-20 h-20 bg-[var(--bg-primary)] border border-[var(--border)] rounded-3xl flex items-center justify-center mx-auto mb-6 text-[var(--text-secondary)] opacity-10 group-hover:text-[var(--accent)] transition-all">
+                        <Database size={36} />
+                    </div>
+                    <h3 className="text-2xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase mb-2">No_Data_Segments</h3>
+                    <p className="text-[var(--text-secondary)] opacity-30 text-[10px] font-black tracking-widest uppercase mb-8">System memory currently initialized but empty.</p>
+                    <PremiumButton onClick={() => setIsFormOpen(true)} className="mx-auto scale-90">Initialize_New_Segment</PremiumButton>
                 </div>
-                <h3 className="text-2xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase mb-2">No_Data_Segments</h3>
-                <p className="text-[var(--text-secondary)] opacity-30 text-[10px] font-black tracking-widest uppercase mb-8">System memory currently initialized but empty.</p>
-                <PremiumButton onClick={() => setIsFormOpen(true)} className="mx-auto scale-90">Initialize_New_Segment</PremiumButton>
-            </div>
+            );
+        }
 
         const schema = cmsSchemas[activeTab];
 
