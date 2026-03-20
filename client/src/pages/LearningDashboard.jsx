@@ -67,21 +67,21 @@ const LearningDashboard = () => {
             {/* Background Tactical Matrix */}
             <div className="fixed inset-0 pointer-events-none opacity-[0.03]">
                 <div className="absolute inset-0 bg-[radial-gradient(var(--accent)_1px,transparent_0)] bg-[size:60px_60px]" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)]" />
             </div>
 
             <div className="max-w-7xl mx-auto relative z-10">
                 
                 {/* CINEMATIC HERO */}
                 <header className="text-center mb-32 relative">
-                    <motion.div 
+                        <motion.div 
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, ease: "backOut" }}
-                        className="inline-flex items-center gap-3 px-6 py-2 bg-black border border-white/10 rounded-full mb-10 shadow-xl"
+                        className="inline-flex items-center gap-3 px-6 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-full mb-10 shadow-xl"
                     >
                         <Target size={16} className="text-[var(--accent)] animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/90">Curriculum_Evolution_Tracker</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-primary)] opacity-90">Curriculum_Evolution_Tracker</span>
                     </motion.div>
 
                     <h1 className="text-6xl md:text-9xl font-black mb-8 text-[var(--text-primary)] tracking-tighter leading-none drop-shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
@@ -112,19 +112,19 @@ const LearningDashboard = () => {
                                     transition={{ duration: 0.8, delay: idx * 0.1, ease: "easeOut" }}
                                     className="group"
                                 >
-                                    <div className="bg-[#0a0a0a] border-2 border-white/5 rounded-[40px] p-10 md:p-14 h-full flex flex-col transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-[0_40px_100px_rgba(0,0,0,0.7)] relative overflow-hidden shadow-2xl">
+                                    <div className="bg-[var(--bg-glass)] border-2 border-[var(--border)] rounded-[40px] p-10 md:p-14 h-full flex flex-col transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-2xl backdrop-blur-xl relative overflow-hidden shadow-xl">
                                         
                                         {/* Status ID Header */}
                                         <div className="flex justify-between items-start mb-12 relative z-10">
                                             <div className="space-y-4">
-                                                <div className="inline-block px-4 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/50">
+                                                <div className="inline-block px-4 py-1 bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
                                                     Module_Sector :: {item.category}
                                                 </div>
-                                                <h3 className="text-4xl font-black text-white leading-tight tracking-tighter group-hover:text-[var(--accent)] transition-colors">
+                                                <h3 className="text-4xl font-black text-[var(--text-primary)] leading-tight tracking-tighter group-hover:text-[var(--accent)] transition-colors">
                                                     {item.topic}
                                                 </h3>
                                             </div>
-                                            <div className={`p-4 rounded-2xl bg-black border-2 border-white/5 flex flex-col items-center justify-center shadow-xl group-hover:scale-110 group-hover:shadow-[0_0_30px_var(--accent-glow)] transition-all duration-700 ${color}`}>
+                                            <div className={`p-4 rounded-2xl bg-[var(--bg-primary)] border-2 border-[var(--border)] flex flex-col items-center justify-center shadow-md group-hover:scale-110 group-hover:shadow-[0_0_30px_var(--accent-glow)] transition-all duration-700 ${color}`}>
                                                 <StatusIcon size={24} className="mb-2" />
                                                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">{item.status}</span>
                                             </div>
@@ -133,7 +133,7 @@ const LearningDashboard = () => {
                                         {/* Segmented Progress Quantizer */}
                                         <div className="mb-14 relative z-10">
                                             <div className="flex justify-between items-end mb-6">
-                                                <span className="text-xs font-black uppercase tracking-[0.4em] text-white/40 italic">Growth_Coefficient</span>
+                                                <span className="text-xs font-black uppercase tracking-[0.4em] text-[var(--text-secondary)] opacity-60 italic">Growth_Coefficient</span>
                                                 <span className={`text-2xl font-black font-mono ${color}`}>{item.progressPercentage}%</span>
                                             </div>
                                             
@@ -141,10 +141,10 @@ const LearningDashboard = () => {
                                                 {[...Array(20)].map((_, step) => (
                                                     <motion.div
                                                         key={step}
-                                                        initial={{ opacity: 0.1, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                                                        initial={{ opacity: 0.1, backgroundColor: 'var(--border)' }}
                                                         whileInView={{ 
                                                             opacity: step * 5 < item.progressPercentage ? 1 : 0.1,
-                                                            backgroundColor: step * 5 < item.progressPercentage ? (status === 'Completed' ? '#22c55e' : 'var(--accent)') : 'rgba(255,255,255,0.05)'
+                                                            backgroundColor: step * 5 < item.progressPercentage ? (item.status === 'Completed' ? '#22c55e' : 'var(--accent)') : 'var(--border)'
                                                         }}
                                                         transition={{ delay: 0.5 + (step * 0.03) }}
                                                         className="flex-1 rounded-sm shadow-inner"
@@ -157,8 +157,8 @@ const LearningDashboard = () => {
                                         </div>
 
                                         {/* Milestones Terminal */}
-                                        <div className="bg-black/40 border border-white/5 rounded-[24px] p-8 flex-grow relative z-10">
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-2">
+                                        <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-[24px] p-8 flex-grow relative z-10">
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-secondary)] opacity-40 mb-8 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" /> 
                                                 Active_Milestone_Log
                                             </h4>
@@ -171,7 +171,7 @@ const LearningDashboard = () => {
                                                         transition={{ delay: 1 + (mIdx * 0.1) }}
                                                         className="flex items-start gap-4 group/ms"
                                                     >
-                                                        <div className={`mt-1 h-2 w-2 rounded-full transition-all duration-500 scale-100 group-hover/ms:scale-150 ${item.status === 'Completed' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]' : 'bg-white/20'}`} />
+                                                        <div className={`mt-1 h-2 w-2 rounded-full transition-all duration-500 scale-100 group-hover/ms:scale-150 ${item.status === 'Completed' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]' : 'bg-[var(--border)]'}`} />
                                                         <span className="text-[var(--text-primary)] text-sm font-bold opacity-80 group-hover/ms:opacity-100 transition-opacity">
                                                             {ms}
                                                         </span>
@@ -181,8 +181,8 @@ const LearningDashboard = () => {
                                         </div>
 
                                         {/* Footer Interface */}
-                                        <div className="mt-10 flex justify-between items-center opacity-20 group-hover:opacity-100 transition-opacity duration-700">
-                                            <span className="font-mono text-[8px] uppercase tracking-[0.5em] text-white">System_Sync_Stable</span>
+                                        <div className="mt-10 flex justify-between items-center opacity-40 group-hover:opacity-100 transition-opacity duration-700">
+                                            <span className="font-mono text-[8px] uppercase tracking-[0.5em] text-[var(--text-secondary)]">System_Sync_Stable</span>
                                             <div className="flex gap-1 h-3 items-end">
                                                 {[...Array(5)].map((_, i) => (
                                                     <div key={i} className={`w-1 bg-[var(--accent)]`} style={{ height: `${(i + 1) * 20}%` }} />
@@ -197,8 +197,8 @@ const LearningDashboard = () => {
                 )}
             </div>
 
-            <footer className="pt-40 pb-20 text-center opacity-10 mt-20">
-                <p className="font-mono text-[10px] uppercase tracking-[1em] text-white">Neural Learning Interface // Status: Synchronizing // Node: Learning_Dashboard</p>
+            <footer className="pt-40 pb-20 text-center opacity-30 mt-20">
+                <p className="font-mono text-[10px] uppercase tracking-[1em] text-[var(--text-secondary)]">Neural Learning Interface // Status: Synchronizing // Node: Learning_Dashboard</p>
             </footer>
         </div>
     );

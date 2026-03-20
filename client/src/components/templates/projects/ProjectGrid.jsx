@@ -14,11 +14,11 @@ const ProjectGrid = ({ projects }) => {
                         delay={idx * 0.1}
                         className="h-full group overflow-hidden flex flex-col hover:border-[var(--accent)] transition-all bg-[var(--bg-glass)]"
                     >
-                        <div className="relative h-56 mb-8 overflow-hidden rounded-[24px] shadow-lg">
+                        <div className="relative h-56 mb-8 overflow-hidden rounded-[24px] shadow-lg bg-[var(--bg-primary)] border border-[var(--border)]">
                             <img 
                                 src={project.coverImage || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop'} 
                                 alt={project.title}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                 {project.githubUrl && (
@@ -45,7 +45,7 @@ const ProjectGrid = ({ projects }) => {
                             <h3 className="text-2xl font-black text-[var(--text-primary)] leading-none group-hover:text-[var(--accent)] transition-colors">
                                 {project.title}
                             </h3>
-                            <p className="text-[var(--text-secondary)] text-sm font-medium line-clamp-3 leading-relaxed opacity-80">
+                            <p className="text-[var(--text-secondary)] text-sm font-semibold line-clamp-3 leading-relaxed opacity-90">
                                 {project.shortDescription}
                             </p>
                         </div>

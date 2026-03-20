@@ -125,7 +125,7 @@ const Blog = () => {
                                         <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/[0.03] to-transparent pointer-events-none" />
                                         
                                         {/* Cover Image */}
-                                        <div className="aspect-[16/10] bg-black/40 rounded-3xl overflow-hidden mb-8 border border-white/5 relative shadow-xl">
+                                        <div className="aspect-[16/10] bg-[var(--bg-primary)] rounded-3xl overflow-hidden mb-8 border border-[var(--border)] relative shadow-xl">
                                             <img src={blog.coverImage || '/placeholder.jpg'} className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000" alt={blog.title} />
                                             <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-lg flex items-center gap-2">
                                                 <Clock size={12} className="text-[var(--accent)]" />
@@ -142,7 +142,7 @@ const Blog = () => {
 
                                         {/* Title & Desc */}
                                         <h3 className="text-2xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase mb-4 leading-tight group-hover:text-[var(--accent)] transition-colors line-clamp-2">{blog.title}</h3>
-                                        <p className="text-sm font-medium text-[var(--text-secondary)] opacity-60 leading-relaxed mb-10 line-clamp-3 italic">
+                                        <p className="text-sm font-semibold text-[var(--text-secondary)] opacity-90 leading-relaxed mb-10 line-clamp-3 italic">
                                             {blog.summary || blog.shortDescription}
                                         </p>
 
