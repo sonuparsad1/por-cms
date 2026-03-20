@@ -7,6 +7,7 @@ import SplitScreen from '../components/templates/home/SplitScreen';
 import AnimatedIntro from '../components/templates/home/AnimatedIntro';
 import FuturisticAI from '../components/templates/home/FuturisticAI';
 import SEOTags from '../components/ui/SEOTags';
+import BlockRenderer from '../components/layout/BlockRenderer';
 
 const Home = () => {
     const { settings, loading } = useContext(SettingsContext);
@@ -27,11 +28,12 @@ const Home = () => {
 
     const renderSelectedTemplate = () => {
         switch (currentTemplate) {
+            case 'Visual Builder': return <BlockRenderer blocks={settings?.blocks} />;
             case 'Centered Hero': return <CenteredHero settings={settings} />;
             case 'Split Screen': return <SplitScreen settings={settings} />;
             case 'Animated Intro': return <AnimatedIntro settings={settings} />;
             case 'Futuristic AI': return <FuturisticAI settings={settings} />;
-            default: return <CenteredHero settings={settings} />;
+            default: return settings?.blocks?.length > 0 ? <BlockRenderer blocks={settings.blocks} /> : <CenteredHero settings={settings} />;
         }
     };
 

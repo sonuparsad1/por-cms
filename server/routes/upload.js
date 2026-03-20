@@ -46,7 +46,7 @@ if (useCloudinary) {
         params: {
             folder: 'portfolio_uploads',
             allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
-            transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+            transformation: [{ width: 1920, height: 1920, crop: 'limit', quality: 'auto', fetch_format: 'auto' }]
         }
     });
     console.log('✅ Storage_Protocol: Cloudinary_Active');

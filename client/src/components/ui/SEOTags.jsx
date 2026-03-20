@@ -13,9 +13,14 @@ const SEOTags = ({ pageTitle, pageDescription, pageImage }) => {
         const baseTitle = settings.metaTitle || settings.siteName || 'Sonu Prasad';
         const baseDesc = settings.metaDescription || settings.siteDescription || 'Portfolio & Blog';
         
+        // Per-page override from Settings
+        const currentPath = location.pathname.split('/')[1] || 'home';
+        const pageSEO = (settings.pagesSEO || []).find(s => s.page === currentPath);
+        
         // Final values
-        const finalTitle = pageTitle ? `${pageTitle} | ${baseTitle}` : baseTitle;
-        const finalDesc = pageDescription || baseDesc;
+        const finalTitle = pageTitle || pageSEO?.metaTitle || baseTitle;
+        const finalDesc = pageDescription || pageSEO?.metaDescription || baseDesc;
+        const finalImage = pageImage || pageSEO?.ogImage || settings.logoUrl;
 
         // Update DOM
         document.title = finalTitle;

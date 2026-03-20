@@ -20,7 +20,10 @@ import {
     Database,
     Zap,
     Cpu,
-    Globe
+    Globe,
+    Layout,
+    Palette,
+    Menu as MenuIcon
 } from 'lucide-react';
 
 const AdminSidebar = ({ activeTab, navigate, logout, isCollapsed, setIsCollapsed }) => {
@@ -43,6 +46,15 @@ const AdminSidebar = ({ activeTab, navigate, logout, isCollapsed, setIsCollapsed
                 { id: 'certifications', label: 'Credentials', icon: ShieldCheck },
                 { id: 'achievements', label: 'Milestones', icon: Award },
                 { id: 'testimonials', label: 'System Feedback', icon: Star }
+            ]
+        },
+        {
+            title: "Design Engine",
+            items: [
+                { id: 'builder', label: 'Visual Builder', icon: Layout },
+                { id: 'theme', label: 'Theme Foundry', icon: Palette },
+                { id: 'navigation', label: 'Nav Architect', icon: MenuIcon },
+                { id: 'seo', label: 'SEO Optimizer', icon: Globe }
             ]
         },
         {

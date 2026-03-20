@@ -30,6 +30,8 @@ import Login from './pages/Login';
 import ProjectDetail from './pages/ProjectDetail';
 import PageTransition from './components/layout/PageTransition';
 import SEOTags from './components/ui/SEOTags';
+import VisualThemeInjector from './components/layout/VisualThemeInjector';
+import AnalyticsTracker from './components/ui/AnalyticsTracker';
 
 const App = () => {
   return (
@@ -38,6 +40,8 @@ const App = () => {
         <AuthProvider>
           <SettingsProvider>
             <NotificationProvider>
+              <VisualThemeInjector />
+              <AnalyticsTracker />
               <SEOTags />
               <Layout>
                 <PageTransition>

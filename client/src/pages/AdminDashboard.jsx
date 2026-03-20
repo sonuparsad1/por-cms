@@ -17,6 +17,12 @@ import AdminTopbar from '../components/admin/AdminTopbar';
 import ProjectBlocksBuilder from '../components/admin/ProjectBlocksBuilder';
 import FluidBackground from '../components/ui/FluidBackground';
 
+// New CMS Components
+import PageBuilder from '../components/admin/PageBuilder';
+import ThemeCustomizer from '../components/admin/ThemeCustomizer';
+import SEOManager from '../components/admin/SEOManager';
+import NavigationBuilder from '../components/admin/NavigationBuilder';
+
 const generateSlug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
 const cmsSchemas = {
@@ -27,7 +33,7 @@ const cmsSchemas = {
         fields: [
             { name: 'siteName', label: 'Global Website Title', type: 'text', required: true },
             { name: 'siteDescription', label: 'Global Description & Meta', type: 'text', required: true },
-            { name: 'homepageTemplate', label: 'Homepage Global Template', type: 'select', options: ['Centered Hero', 'Split Screen', 'Animated Intro', 'Futuristic AI'], required: true },
+            { name: 'homepageTemplate', label: 'Homepage Global Template', type: 'select', options: ['Visual Builder', 'Centered Hero', 'Split Screen', 'Animated Intro', 'Futuristic AI'], required: true },
             { name: 'globalTheme', label: 'Forced Theme Override', type: 'select', options: ['light', 'dark', 'luxury'], required: true },
             { name: 'metaTitle', label: 'SEO Meta Title', type: 'text', required: false },
             { name: 'metaDescription', label: 'SEO Meta Description', type: 'text', required: false },
@@ -185,15 +191,19 @@ const AdminDashboard = () => {
     const { tab } = useParams();
     const navigate = useNavigate();
     
-    const validTabs = [...Object.keys(cmsSchemas), 'overview', 'messages', 'media', 'security'];
+    const validTabs = [
+        ...Object.keys(cmsSchemas), 
+        'overview', 'messages', 'media', 'security',
+        'builder', 'theme', 'navigation', 'seo'
+    ];
     const activeTab = validTabs.includes(tab) ? tab : 'overview';
     
-    const [collectionData, setCollectionData] = useState([]);
+    const [counts, setCounts] = useState(null);
+    const [analyticsData, setAnalyticsData] = useState({ charts: { dailyViews: [] }, topPages: [] });
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [inboxSearch, setInboxSearch] = useState('');
-    const [counts, setCounts] = useState({ projects: 0, blogs: 0, messages: 0 });
     const [formData, setFormData] = useState({});
     const [inboxFilter, setInboxFilter] = useState('all');
     const [reviewFilter, setReviewFilter] = useState('all');
@@ -247,24 +257,30 @@ const AdminDashboard = () => {
     };
 
     useEffect(() => {
-        fetchCounts();
-    }, []);
-
-    const fetchCounts = async () => {
-        try {
-            const res = await fetch('/api/admin/counts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            setCounts(data);
-        } catch (err) {}
-    };
+        const fetchAnalytics = async () => {
+            try {
+                const res = await fetch('/api/analytics/summary', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setCounts(data.counts);
+                    setAnalyticsData({ charts: data.charts, topPages: data.topPages });
+                }
+            } catch (err) {
+                console.error('Failed to fetch analytics:', err);
+            }
+        };
+        if (token) fetchAnalytics();
+    }, [token]);
 
     const fetchCollectionData = async () => {
-        if (activeTab === 'overview' || activeTab === 'media') return;
+        if (['overview', 'media'].includes(activeTab)) return;
         setLoading(true);
         try {
-            const url = activeTab === 'messages' ? '/api/messages' : `/api/${activeTab}`;
+            const url = activeTab === 'messages' ? '/api/messages' : 
+                        ['builder', 'theme', 'navigation', 'seo', 'settings'].includes(activeTab) ? '/api/settings' :
+                        `/api/${activeTab}`;
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -286,12 +302,36 @@ const AdminDashboard = () => {
         }));
     };
 
-    const handleFormSubmit = async (e) => {
-        e.preventDefault();
+    const handleExport = async () => {
+        try {
+            const res = await fetch('/api/export', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cms_backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+            }
+        } catch (err) {
+            console.error('Export failed:', err);
+        }
+    };
+
+const handleFormSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
         setLoading(true);
         try {
-            const method = editingId ? 'PUT' : 'POST';
-            const url = editingId ? `/api/${activeTab}/${editingId}` : `/api/${activeTab}`;
+            const isSettingsTab = ['builder', 'theme', 'navigation', 'seo', 'settings'].includes(activeTab);
+            const settingsId = isSettingsTab ? collectionData[0]?._id : null;
+            
+            const method = isSettingsTab || editingId ? 'PUT' : 'POST';
+            const url = isSettingsTab 
+                ? `/api/settings/${settingsId}`
+                : (editingId ? `/api/${activeTab}/${editingId}` : `/api/${activeTab}`);
             
             // Auto-generate slug for projects and blogs if not present
             const submissionData = { ...formData };
@@ -343,9 +383,27 @@ const AdminDashboard = () => {
         setIsFormOpen(true);
     };
 
+    const updateMessageStatus = async (message, newStatus) => {
+        try {
+            const res = await fetch(`/api/messages/${message._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) {
+                setCollectionData(collectionData.map(m => m._id === message._id ? { ...m, status: newStatus } : m));
+            }
+        } catch (err) {
+            console.error('Failed to update message status:', err);
+        }
+    };
+
     const toggleReadStatus = async (m) => {
         try {
-            const res = await fetch(`/api/contact/${m._id}`, {
+            const res = await fetch(`/api/messages/${m._id}`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -543,7 +601,7 @@ const AdminDashboard = () => {
                                         }}
                                         className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl px-5 py-4 outline-none focus:border-[var(--accent)]/50 text-[var(--text-primary)] font-mono text-xs h-32"
                                     />
-                                    <p className="text-[10px] text-[var(--accent)] font-bold italic opacity-60 uppercase tracking-widest">Authorized_JSON_Buffer_Only</p>
+                                    <p className="text-[10px] text-[var(--accent)] font-bold italic opacity-60 uppercase tracking-widest">Authorized_JSON_BUFFER_ONLY</p>
                                 </div>
                             ) : field.type === 'project-builder' ? (
                                 <ProjectBlocksBuilder 
@@ -683,6 +741,25 @@ const AdminDashboard = () => {
                             <PremiumButton type="submit" label="Invoke_Entropy_Shift" icon={Zap} />
                         </div>
                     </form>
+
+                    <div className="mt-20 p-8 bg-[var(--accent)]/5 border border-[var(--accent)]/10 rounded-3xl">
+                        <div className="flex gap-6 items-start">
+                            <div className="w-12 h-12 rounded-xl bg-[var(--bg-primary)] border border-[var(--accent)]/30 flex items-center justify-center text-[var(--accent)] shrink-0 shadow-lg shadow-[var(--accent-glow)]"><Shield size={22}/></div>
+                            <div className="space-y-4 flex-1">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-[var(--text-primary)]">Data_Exfiltration_Protocol</h4>
+                                <p className="text-[10px] font-medium leading-relaxed italic text-[var(--text-secondary)] opacity-60">
+                                    Extract all database collectives into a singular JSON carrier signal for archival or migration purposes.
+                                </p>
+                                <button 
+                                    onClick={handleExport}
+                                    className="w-full mt-4 py-4 bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl font-black text-[10px] tracking-[0.3em] uppercase italic text-[var(--accent)] hover:bg-[var(--accent)] hover:text-black hover:border-[var(--accent)] transition-all shadow-xl flex items-center justify-center gap-3 group"
+                                >
+                                    <Download size={16} className="group-hover:-translate-y-1 transition-transform" />
+                                    Initialize_Export_Protocol
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="mt-20 p-8 bg-[var(--accent)]/5 border border-[var(--accent)]/10 rounded-3xl">
                         <div className="flex gap-6 items-start">
@@ -918,6 +995,17 @@ const AdminDashboard = () => {
                                     <div className={`p-6 rounded-3xl text-lg italic leading-relaxed ${m.isRead ? 'text-[var(--text-secondary)] opacity-50' : 'bg-[var(--bg-primary)] text-[var(--text-primary)] font-bold shadow-inner border border-[var(--border)]'}`}>
                                         "{m.message}"
                                     </div>
+                                    <div className="mt-6 flex flex-wrap gap-3">
+                                        {['NEW', 'CONTACTED', 'WON', 'ARCHIVED'].map(s => (
+                                            <button
+                                                key={s}
+                                                onClick={() => updateMessageStatus(m, s)}
+                                                className={`px-4 py-1.5 rounded-xl text-[8px] font-black tracking-widest uppercase transition-all border ${m.status === s ? 'bg-[var(--accent)] text-black border-[var(--accent)] shadow-lg scale-105' : 'text-[var(--text-secondary)] border-[var(--border)] opacity-30 hover:opacity-100 hover:border-[var(--accent)]/50'}`}
+                                            >
+                                                {s}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div className="flex md:flex-col gap-3 shrink-0 self-end md:self-auto opacity-0 group-hover:opacity-100 transition-all">
                                     <button 
@@ -987,14 +1075,8 @@ const AdminDashboard = () => {
                     </div>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={[
-                                { name: 'M01', views: 400, visitors: 240 },
-                                { name: 'M02', views: 300, visitors: 139 },
-                                { name: 'M03', views: 550, visitors: 380 },
-                                { name: 'M04', views: 470, visitors: 290 },
-                                { name: 'M05', views: 790, visitors: 480 },
-                                { name: 'M06', views: 920, visitors: 680 },
-                                { name: 'M07', views: 810, visitors: 590 },
+                            <AreaChart data={analyticsData.charts.dailyViews.length > 0 ? analyticsData.charts.dailyViews : [
+                                { name: 'No Data', views: 0, visitors: 0 }
                             ]}>
                                 <defs>
                                     <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
@@ -1007,6 +1089,7 @@ const AdminDashboard = () => {
                                 <YAxis stroke="var(--text-primary)" fontSize={10} tickLine={false} axisLine={false} dx={-10} fontStyle="italic" fontWeight="900" />
                                 <Tooltip contentStyle={{ backgroundColor: 'var(--bg-glass)', border: '1px solid var(--border)', borderRadius: '20px', color: 'var(--text-primary)', fontSize: '12px', fontWeight: 'bold', backdropBlur: '10px' }}/>
                                 <Area type="monotone" dataKey="views" stroke="var(--accent)" strokeWidth={4} fillOpacity={1} fill="url(#colorViews)" />
+                                <Area type="monotone" dataKey="visitors" stroke="#10b981" strokeWidth={2} fillOpacity={0} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -1014,31 +1097,21 @@ const AdminDashboard = () => {
 
                 <div className="col-span-1 bg-[var(--bg-secondary)] backdrop-blur-2xl border border-[var(--border)] rounded-[40px] p-10 shadow-3xl flex flex-col">
                     <div className="flex items-center gap-4 mb-10">
-                        <div className="p-3 bg-purple-500/10 text-purple-500 rounded-xl border border-purple-500/20"><Shield size={20}/></div>
-                        <h3 className="text-xl font-black text-[var(--text-primary)] italic tracking-tight uppercase">System_Load</h3>
+                        <div className="p-3 bg-purple-500/10 text-purple-500 rounded-xl border border-purple-500/20"><Globe size={20}/></div>
+                        <h3 className="text-xl font-black text-[var(--text-primary)] italic tracking-tight uppercase">Top_Segments</h3>
                     </div>
-                    <div className="flex-1 flex flex-col justify-center gap-10">
-                        {[
-                            { name: 'Neural Processing', value: 85, color: 'bg-[var(--accent)]', glow: 'shadow-[var(--accent-glow)]' },
-                            { name: 'Core Database', value: 62, color: 'bg-emerald-500', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.3)]' },
-                            { name: 'Visual Interface', value: 45, color: 'bg-blue-500', glow: 'shadow-[0_0_15px_rgba(59,130,246,0.3)]' },
-                            { name: 'Security Matrix', value: 95, color: 'bg-red-500', glow: 'shadow-[0_0_15px_rgba(239,68,68,0.3)]' }
-                        ].map(en => (
-                            <div key={en.name} className="flex flex-col gap-3">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest italic">
-                                    <span className="text-[var(--text-primary)] opacity-50">{en.name}</span>
-                                    <span className="text-[var(--text-primary)]">{en.value}%</span>
+                    <div className="flex-1 flex flex-col justify-center gap-6">
+                        {analyticsData.topPages.length > 0 ? analyticsData.topPages.map((page, pidx) => (
+                            <div key={pidx} className="flex justify-between items-center p-4 bg-[var(--bg-primary)] border border-[var(--border)] rounded-2xl group hover:border-[var(--accent)] transition-all">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]">/{page._id}</span>
+                                    <span className="text-[8px] font-bold opacity-30 uppercase italic">Segment_Frequency</span>
                                 </div>
-                                <div className="h-2.5 w-full bg-[var(--bg-primary)] rounded-full overflow-hidden border border-[var(--border)]">
-                                    <motion.div 
-                                        initial={{ width: 0 }}
-                                        whileInView={{ width: `${en.value}%` }} 
-                                        transition={{ duration: 1.5, ease: 'circOut' }}
-                                        className={`h-full ${en.color} ${en.glow} rounded-full`} 
-                                    />
-                                </div>
+                                <div className="text-xl font-black italic">{page.count}</div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="text-center py-10 opacity-20 text-[10px] font-black uppercase tracking-widest">Collecting_Data...</div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -1100,8 +1173,68 @@ const AdminDashboard = () => {
                             {activeTab === 'messages' && renderInbox()}
                             {activeTab === 'media' && <MediaManager adminToken={token} />}
                             {activeTab === 'security' && renderSecuritySettings()}
-                            {!['overview', 'messages', 'media', 'security'].includes(activeTab) && isFormOpen && renderDynamicForm()}
-                            {!['overview', 'messages', 'media', 'security'].includes(activeTab) && !isFormOpen && (
+                            
+                            {/* New CMS Production Tabs */}
+                            {activeTab === 'builder' && (
+                                <div className="space-y-8">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <h2 className="text-3xl font-black text-[var(--text-primary)] italic tracking-tighter uppercase">Visual_Page_Pilot</h2>
+                                            <p className="text-[10px] font-black tracking-[0.3em] text-[var(--text-secondary)] opacity-50 uppercase mt-1">Homepage_Constructor // Block_Mode</p>
+                                        </div>
+                                    </div>
+                                    <PageBuilder 
+                                        blocks={collectionData[0]?.blocks || []} 
+                                        onChange={(blocks) => setCollectionData([{ ...collectionData[0], blocks }])}
+                                        token={token}
+                                    />
+                                    <div className="flex justify-end pt-6">
+                                        <PremiumButton label="Deploy_Block_Matrix" icon={Zap} onClick={() => handleFormSubmit({ preventDefault: () => {} })} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'theme' && (
+                                <div className="max-w-4xl mx-auto">
+                                    <ThemeCustomizer 
+                                        settings={collectionData[0]} 
+                                        onSave={(themeData) => {
+                                            setFormData({ ...collectionData[0], ...themeData });
+                                            handleFormSubmit({ preventDefault: () => {} });
+                                        }}
+                                        loading={loading}
+                                    />
+                                </div>
+                            )}
+
+                            {activeTab === 'navigation' && (
+                                <div className="max-w-4xl mx-auto">
+                                    <NavigationBuilder 
+                                        navItems={collectionData[0]?.navItems || []} 
+                                        onSave={(navItems) => {
+                                            setFormData({ ...collectionData[0], navItems });
+                                            handleFormSubmit({ preventDefault: () => {} });
+                                        }}
+                                        loading={loading}
+                                    />
+                                </div>
+                            )}
+
+                            {activeTab === 'seo' && (
+                                <div className="max-w-6xl mx-auto">
+                                    <SEOManager 
+                                        pagesSEO={collectionData[0]?.pagesSEO || []} 
+                                        onSave={(pagesSEO) => {
+                                            setFormData({ ...collectionData[0], pagesSEO });
+                                            handleFormSubmit({ preventDefault: () => {} });
+                                        }}
+                                        loading={loading}
+                                    />
+                                </div>
+                            )}
+
+                            {!['overview', 'messages', 'media', 'security', 'builder', 'theme', 'navigation', 'seo'].includes(activeTab) && isFormOpen && renderDynamicForm()}
+                            {!['overview', 'messages', 'media', 'security', 'builder', 'theme', 'navigation', 'seo'].includes(activeTab) && !isFormOpen && (
                                 <div className="space-y-10">
                                     <div className="flex justify-between items-center mb-10">
                                         <div className="flex items-center gap-4">
