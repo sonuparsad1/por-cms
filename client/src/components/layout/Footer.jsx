@@ -3,24 +3,29 @@ import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 
 const Footer = () => {
     return (
-        <footer className="glass mt-20 py-8 text-center border-t border-l-0 border-r-0 border-b-0 rounded-none">
-            <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-                <p className="text-coffee-700 dark:text-coffee-300 mb-4 md:mb-0">
+        <footer className="glass py-12 text-center border-t border-[var(--border)] bg-transparent">
+            <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+                <p className="text-[var(--text-secondary)] font-medium opacity-80">
                     &copy; {new Date().getFullYear()} Sonu Prasad. All rights reserved.
                 </p>
-                <div className="flex gap-4">
-                    <a href="https://github.com/sonuparsad1" target="_blank" rel="noopener noreferrer" className="text-coffee-500 hover:text-coffee-900 dark:hover:text-coffee-100 transition-colors">
-                        <Github size={20} />
-                    </a>
-                    <a href="https://www.linkedin.com/in/spsaharan/" target="_blank" rel="noopener noreferrer" className="text-coffee-500 hover:text-coffee-900 dark:hover:text-coffee-100 transition-colors">
-                        <Linkedin size={20} />
-                    </a>
-                    <a href="https://x.com/iamsonuparsad" target="_blank" rel="noopener noreferrer" className="text-coffee-500 hover:text-coffee-900 dark:hover:text-coffee-100 transition-colors">
-                        <Twitter size={20} />
-                    </a>
-                    <a href="mailto:sonusa470@gmail.com" className="text-coffee-500 hover:text-coffee-900 dark:hover:text-coffee-100 transition-colors">
-                        <Mail size={20} />
-                    </a>
+                
+                <div className="flex gap-6">
+                    {[
+                        { icon: Github, href: "https://github.com/sonuparsad1" },
+                        { icon: Linkedin, href: "https://www.linkedin.com/in/spsaharan/" },
+                        { icon: Twitter, href: "https://x.com/iamsonuparsad" },
+                        { icon: Mail, href: "mailto:sonusa470@gmail.com" }
+                    ].map((social, i) => (
+                        <a 
+                            key={i}
+                            href={social.href} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-all transform hover:scale-110 active:scale-95"
+                        >
+                            <social.icon size={22} />
+                        </a>
+                    ))}
                 </div>
             </div>
         </footer>
